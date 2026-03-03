@@ -8,7 +8,9 @@
                 <div class="text-xs uppercase tracking-[0.24em] text-cyan-100/70">Organization and title workflows</div>
             </div>
             <nav class="hidden gap-2 md:flex">
-                <NavLink class="app-nav-link" href="/library">Library</NavLink>
+                <NavLink class="app-nav-link" href="/library">Public Library</NavLink>
+                <NavLink class="app-nav-link" href="/player/library">Player Library</NavLink>
+                <NavLink class="app-nav-link" href="/player/wishlist">Wishlist</NavLink>
                 <NavLink class="app-nav-link" href="/develop">Develop</NavLink>
                 <NavLink class="app-nav-link" href="/account">Account</NavLink>
             </nav>
@@ -21,11 +23,13 @@
             <div class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/75">Workspace</div>
             <nav class="mt-4 flex flex-col gap-2 text-sm text-slate-200">
                 <NavLink class="app-side-link" href="/develop" Match="NavLinkMatch.All">Overview</NavLink>
+                <NavLink class="app-side-link" href="/player/library">Player library</NavLink>
+                <NavLink class="app-side-link" href="/player/wishlist">Wishlist</NavLink>
                 <NavLink class="app-side-link" href="/library">Public library</NavLink>
                 <NavLink class="app-side-link" href="/account">Account</NavLink>
             </nav>
             <div class="mt-6 rounded-[1.25rem] border border-cyan-200/15 bg-cyan-200/10 p-4 text-sm text-cyan-50/85">
-                Organization-specific navigation appears as live data once the managed workspace list has loaded.
+                Organization-specific navigation appears here after developer access is active and the managed workspace list has loaded.
             </div>
         </aside>
 

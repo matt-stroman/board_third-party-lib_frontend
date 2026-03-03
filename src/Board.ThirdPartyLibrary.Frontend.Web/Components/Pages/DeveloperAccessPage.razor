@@ -1,0 +1,96 @@
+@page "/account/developer-access"
+@attribute [Authorize]
+@inject IBoardLibraryApiClient ApiClient
+
+<PageTitle>Developer Access</PageTitle>
+
+<section class="space-y-6">
+    <div class="app-chip w-fit">Post-sign-in onboarding</div>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <section class="app-panel p-6">
+            <h1 class="app-page-title">Developer access unavailable</h1>
+            <p class="mt-4 text-base leading-8 text-slate-300">@ErrorMessage</p>
+        </section>
+    }
+    else if (CurrentUser is null)
+    {
+        <section class="app-panel p-6">
+            <div class="h-8 w-52 animate-pulse rounded-full bg-white/10"></div>
+            <div class="mt-4 h-44 animate-pulse rounded-[1.75rem] bg-white/10"></div>
+        </section>
+    }
+    else
+    {
+        <section class="app-panel p-6">
+            <h1 class="app-page-title">Developer Access</h1>
+            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+                New library accounts start as players only. Developer access is a separate step after sign-in so backend controls do not appear by default for every newly registered user.
+            </p>
+
+            @if (CurrentUser.IsDeveloper())
+            {
+                <div class="mt-6 rounded-[1.5rem] border border-emerald-300/20 bg-emerald-300/10 p-5 text-sm leading-7 text-emerald-50/90">
+                    Developer access is already enabled for this account. You can open the developer console and manage organizations now.
+                </div>
+                <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <a class="rounded-full bg-cyan-300 px-5 py-3 text-center text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/develop">Open developer console</a>
+                    <a class="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/account">Back to account</a>
+                </div>
+            }
+            else
+            {
+                <div class="mt-6 rounded-[1.5rem] border border-cyan-200/15 bg-cyan-200/10 p-5 text-sm leading-7 text-cyan-50/90">
+                    This route is the reserved UI handoff for future developer enrollment. The backend mutation and approval rules are intentionally deferred to a later wave, but the player-first navigation path now exists.
+                </div>
+                <div class="mt-6 grid gap-4 lg:grid-cols-3">
+                    <section class="rounded-[1.25rem] bg-black/15 p-4">
+                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Step 1</div>
+                        <div class="mt-2 text-lg font-semibold text-white">Register and verify</div>
+                        <p class="mt-2 text-sm leading-7 text-slate-300">Keycloak registration remains responsible for account creation and email verification.</p>
+                    </section>
+                    <section class="rounded-[1.25rem] bg-black/15 p-4">
+                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Step 2</div>
+                        <div class="mt-2 text-lg font-semibold text-white">Land as a player</div>
+                        <p class="mt-2 text-sm leading-7 text-slate-300">All authenticated users begin in the player library instead of entering developer workflows automatically.</p>
+                    </section>
+                    <section class="rounded-[1.25rem] bg-black/15 p-4">
+                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Step 3</div>
+                        <div class="mt-2 text-lg font-semibold text-white">Request developer access</div>
+                        <p class="mt-2 text-sm leading-7 text-slate-300">A future backend wave will turn this page into the actual developer-enrollment action.</p>
+                    </section>
+                </div>
+                <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <a class="rounded-full bg-cyan-300 px-5 py-3 text-center text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/player/library">Back to player library</a>
+                    <a class="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop">Preview developer onboarding</a>
+                </div>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    private CurrentUserResponse? CurrentUser { get; set; }
+
+    private string? ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ErrorMessage = null;
+
+        try
+        {
+            CurrentUser = await ApiClient.GetCurrentUserAsync();
+
+            if (CurrentUser is null)
+            {
+                ErrorMessage = "The authenticated user profile could not be loaded from the backend.";
+            }
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # board_third-party-lib_frontend
 
-A frontend interface for Board Third Party Library users to browse the catalog and for developers to manage their organizations and titles.
+A frontend interface for Board Third Party Library users to browse the public catalog, use authenticated player routes, and manage developer organizations and titles once developer access is enabled.
 
 Planning artifacts for the web UI live in [`planning/`](planning/README.md).
 

@@ -25,9 +25,10 @@ It converts current product discussion into an implementation-ready brief for th
 
 ## Product Scope
 
-The MVP web UI is one application with two user-facing surfaces:
+The MVP web UI is one application with three user-facing surfaces:
 
 - a public library experience for players and general browsing
+- an authenticated player space for the signed-in player's library and wishlist
 - an authenticated developer console for organizations, titles, releases, media, and acquisition setup
 
 Wave 6 commerce and Wave 7 Board-native install flows remain out of scope for this web MVP.
@@ -89,12 +90,15 @@ Information architecture is the app's content and navigation structure: which ar
 Recommended top-level structure:
 
 - **Public library:** browse catalog, filter or sort content, and open a title details page
+- **Player library:** authenticated library, wishlist, and later personalized player organization features
 - **Developer console:** manage the signed-in user's organizations and the content belonging to those organizations
-- **Account area:** view the current user, roles, Board profile, and sign-in state
+- **Account area:** view the current user, access state, Board profile, and sign-in state
 
 Recommended primary navigation:
 
-- `Library`
+- `Public Library`
+- `Player Library`
+- `Wishlist`
 - `Develop`
 - `Account`
 
@@ -108,8 +112,9 @@ Recommended developer console structure:
 
 This keeps the user model simple:
 
-- players stay in library routes
-- developers move into a clearly separate management area
+- anonymous users stay in public library routes
+- authenticated players land in player-library routes first
+- developers move into a clearly separate management area only after developer access is enabled
 - shared account/profile concerns live outside both
 
 ## MVP Route Map
@@ -130,13 +135,22 @@ Recommended initial routes:
 ### Account routes
 
 - `/account`
-  - current user summary, roles, and sign-in status
+  - current user summary, access status, and sign-in state
 - `/account/board-profile`
   - Board profile link or edit flow
+- `/account/developer-access`
+  - explicit post-sign-in developer enrollment entry point
 - `/signin`
   - sign-in handoff route
 - `/signout`
   - sign-out handoff route
+
+### Player routes
+
+- `/player/library`
+  - authenticated player library and default post-sign-in landing route
+- `/player/wishlist`
+  - authenticated private wishlist route
 
 ### Developer routes
 
@@ -170,6 +184,7 @@ Recommended initial routes:
 Recommended initial navigation behavior:
 
 - public routes use a consumer-facing shell
+- player routes use the same consumer-facing shell with authenticated actions and private data
 - developer routes use a workspace shell with persistent organization context
 - when a developer belongs to multiple organizations, the active organization should be visible and easy to switch
 
@@ -261,6 +276,7 @@ Critical MVP end-to-end paths:
 
 - public library browse to title detail
 - sign-in and sign-out
+- authenticated player landing to player library
 - create organization
 - create title
 - update title metadata
@@ -270,7 +286,7 @@ Critical MVP end-to-end paths:
 
 ## Required Backend Follow-Ups
 
-The current API surface is good enough to start UI scaffolding, but at least these contract additions should be planned before the public library is treated as complete:
+The current API surface is good enough to start UI scaffolding, but at least these contract additions should be planned before the authenticated player surface is treated as complete:
 
 ### Required before catalog UX is considered feature-complete
 
@@ -281,6 +297,8 @@ The current API surface is good enough to start UI scaffolding, but at least the
 - add pagination or an explicit capped result contract for `GET /catalog`
 - add explicit sort options for public catalog browsing beyond genre if the list is expected to grow quickly
 - consider text search once the catalog has enough volume for it to matter
+- add authenticated player-library and wishlist endpoints before those routes leave stub mode
+- add a separate developer-enrollment endpoint so developer access no longer depends on back-office role assignment alone
 
 Notes on current pressure points:
 

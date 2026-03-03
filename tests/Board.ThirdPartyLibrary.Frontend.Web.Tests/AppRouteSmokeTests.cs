@@ -28,9 +28,12 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [Theory]
     [InlineData("/", "Board Third Party Library")]
     [InlineData("/library", "Star Blasters")]
+    [InlineData("/player/library", "Player Library")]
+    [InlineData("/player/wishlist", "No wishlist items yet")]
     [InlineData("/library/stellar-forge/star-blasters", "View on itch.io")]
     [InlineData("/develop", "Stellar Forge")]
-    [InlineData("/account", "Local Admin")]
+    [InlineData("/account", "Player library access")]
+    [InlineData("/account/developer-access", "Developer Access")]
     [InlineData("/signin?error=identity-provider-unavailable", "Sign in is unavailable right now")]
     public async Task Route_ReturnsSuccessfulResponse_WithExpectedMarker(string route, string expectedContent)
     {
@@ -42,13 +45,54 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         Assert.Contains(expectedContent, content);
     }
 
+    [Fact]
+    public async Task DevelopRoute_WithPlayerOnlyAccount_ShowsDeveloperOnboarding()
+    {
+        using var factory = new TestWebApplicationFactory(
+            new TestApiData(
+                CurrentUser: new CurrentUserResponse(
+                    "user-456",
+                    "Player One",
+                    "player@boardtpl.local",
+                    true,
+                    null,
+                    ["player"]),
+                ManagedOrganizations: new DeveloperOrganizationListResponse([])));
+
+        using var playerClient = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        var response = await playerClient.GetAsync("/develop");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Become A Developer", content);
+        Assert.DoesNotContain("Managed organizations", content);
+    }
+
     public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
     {
+        private readonly TestApiData data;
+
+        public TestWebApplicationFactory()
+            : this(TestApiData.Default)
+        {
+        }
+
+        internal TestWebApplicationFactory(TestApiData data)
+        {
+            this.data = data;
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
             builder.ConfigureTestServices(services =>
             {
+                services.AddSingleton(data);
                 services.RemoveAll<IBoardLibraryApiClient>();
                 services.AddSingleton<IBoardLibraryApiClient, StubBoardLibraryApiClient>();
 
@@ -69,7 +113,38 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         }
     }
 
-    private sealed class StubBoardLibraryApiClient : IBoardLibraryApiClient
+    public sealed record TestApiData(
+        CurrentUserResponse CurrentUser,
+        BoardProfile? BoardProfile = null,
+        DeveloperOrganizationListResponse? ManagedOrganizations = null)
+    {
+        public static TestApiData Default { get; } = new(
+            CurrentUser: new CurrentUserResponse(
+                "user-123",
+                "Local Admin",
+                "admin@boardtpl.local",
+                true,
+                null,
+                ["admin", "developer", "player"]),
+            BoardProfile: new BoardProfile(
+                "board_user_12345",
+                "BoardKiddo",
+                "https://cdn.board.fun/users/board_user_12345/avatar.png",
+                DateTime.Parse("2026-03-01T18:00:00Z"),
+                DateTime.Parse("2026-03-01T18:00:00Z")),
+            ManagedOrganizations: new DeveloperOrganizationListResponse(
+                [
+                    new DeveloperOrganizationSummary(
+                        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                        "stellar-forge",
+                        "Stellar Forge",
+                        "Family co-op studio.",
+                        "https://cdn.example.com/orgs/stellar-forge.png",
+                        "owner")
+                ]));
+    }
+
+    private sealed class StubBoardLibraryApiClient(TestApiData data) : IBoardLibraryApiClient
     {
         public Task<CatalogTitleListResponse> GetCatalogTitlesAsync(CatalogBrowseRequest request, CancellationToken cancellationToken = default) =>
             Task.FromResult(
@@ -149,36 +224,13 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     DateTime.Parse("2026-03-02T18:10:00Z")));
 
         public Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<CurrentUserResponse?>(
-                new CurrentUserResponse(
-                    "user-123",
-                    "Local Admin",
-                    "admin@boardtpl.local",
-                    true,
-                    null,
-                    ["admin", "developer", "player"]));
+            Task.FromResult<CurrentUserResponse?>(data.CurrentUser);
 
         public Task<BoardProfile?> GetBoardProfileAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult<BoardProfile?>(
-                new BoardProfile(
-                    "board_user_12345",
-                    "BoardKiddo",
-                    "https://cdn.board.fun/users/board_user_12345/avatar.png",
-                    DateTime.Parse("2026-03-01T18:00:00Z"),
-                    DateTime.Parse("2026-03-01T18:00:00Z")));
+            Task.FromResult(data.BoardProfile);
 
         public Task<DeveloperOrganizationListResponse> GetManagedOrganizationsAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(
-                new DeveloperOrganizationListResponse(
-                    [
-                        new DeveloperOrganizationSummary(
-                            Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                            "stellar-forge",
-                            "Stellar Forge",
-                            "Family co-op studio.",
-                            "https://cdn.example.com/orgs/stellar-forge.png",
-                            "owner")
-                    ]));
+            Task.FromResult(data.ManagedOrganizations ?? new DeveloperOrganizationListResponse([]));
 
         public Task<DeveloperTitleListResponse> GetOrganizationTitlesAsync(Guid organizationId, CancellationToken cancellationToken = default) =>
             Task.FromResult(

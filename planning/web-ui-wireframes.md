@@ -14,8 +14,13 @@ Used by:
 
 - `/`
 - `/library`
+- `/player/library`
+- `/player/wishlist`
 - `/library/:organizationSlug/:titleSlug`
 - `/organizations/:slug`
+- `/account`
+- `/account/board-profile`
+- `/account/developer-access`
 
 Desktop structure:
 
@@ -46,8 +51,8 @@ Mobile structure:
 
 Used by:
 
-- `/develop/*`
-- `/account*`
+- `/develop/organizations/*`
+- `/develop/titles/*`
 
 Desktop structure:
 
@@ -254,7 +259,7 @@ Desktop:
 
 Goal:
 
-- show sign-in state and current-user identity clearly
+- show sign-in state and current-user identity clearly without exposing backend role codes
 
 ```text
 +----------------------------------------------+
@@ -262,7 +267,8 @@ Goal:
 +----------------------------------------------+
 | Display name                                 |
 | Email                                        |
-| Roles chips                                  |
+| Player access                                |
+| Developer access                             |
 | Board profile status                         |
 | Sign out                                     |
 +----------------------------------------------+
@@ -287,11 +293,59 @@ Goal:
 +------------------------------------------------------+
 ```
 
+## `/account/developer-access`
+
+Goal:
+
+- provide the explicit post-sign-in route where a player can opt into developer workflows later
+
+```text
++------------------------------------------------------+
+| Developer access                                     |
++------------------------------------------------------+
+| Explanation: new accounts start as players           |
+| Current state: enabled / not enabled                 |
+| Future action: request developer access              |
+| Back to player library                               |
++------------------------------------------------------+
+```
+
+## `/player/library`
+
+Goal:
+
+- make the authenticated player library the default post-sign-in landing route
+
+```text
++----------------------------------------------------------------------------------+
+| Player library                                                                   |
++----------------------------------------------------------------------------------+
+| Signed-in player summary | planned owned titles                                  |
++----------------------------------------------------------------------------------+
+| Planned cards: owned titles | collections | favorites                            |
++----------------------------------------------------------------------------------+
+```
+
+## `/player/wishlist`
+
+Goal:
+
+- reserve the authenticated route where wishlist entries will live later
+
+```text
++----------------------------------------------------------------------------------+
+| Wishlist                                                                         |
++----------------------------------------------------------------------------------+
+| Empty-state explanation                                                          |
+| CTA back to public library                                                       |
++----------------------------------------------------------------------------------+
+```
+
 ## `/develop`
 
 Goal:
 
-- orient signed-in developers quickly
+- act as a developer onboarding gate for players and orient enabled developers quickly
 
 Desktop:
 
@@ -305,6 +359,17 @@ Desktop:
 | [org card] [org card] [org card]                                                 |
 +----------------------------------------------------------------------------------+
 | Recent developer activity placeholders                                           |
++----------------------------------------------------------------------------------+
+```
+
+Player-only state:
+
+```text
++----------------------------------------------------------------------------------+
+| Become a developer                                                               |
++----------------------------------------------------------------------------------+
+| Player-first explanation                                                         |
+| CTA to developer access route                                                    |
 +----------------------------------------------------------------------------------+
 ```
 

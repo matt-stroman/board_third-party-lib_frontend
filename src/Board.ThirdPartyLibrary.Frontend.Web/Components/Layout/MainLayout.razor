@@ -14,22 +14,27 @@
             </a>
             <nav class="hidden items-center gap-2 md:flex">
                 <NavLink class="app-nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
-                <NavLink class="app-nav-link" href="/library">Library</NavLink>
-                <NavLink class="app-nav-link" href="/develop">Develop</NavLink>
+                <NavLink class="app-nav-link" href="/library">Public Library</NavLink>
                 <AuthorizeView>
                     <Authorized>
+                        <NavLink class="app-nav-link" href="/player/library">Player Library</NavLink>
+                        <NavLink class="app-nav-link" href="/player/wishlist">Wishlist</NavLink>
+                        <NavLink class="app-nav-link" href="/develop">Develop</NavLink>
                         <NavLink class="app-nav-link" href="/account">Account</NavLink>
                     </Authorized>
+                    <NotAuthorized>
+                        <NavLink class="app-nav-link" href="/develop">Develop</NavLink>
+                    </NotAuthorized>
                 </AuthorizeView>
             </nav>
             <div class="hidden items-center gap-3 md:flex">
                 <AuthorizeView>
                     <Authorized>
-                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/account">Account</a>
+                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/player/library">Player Library</a>
                         <a class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200" href="/auth/signout?returnUrl=%2Flibrary" data-enhance-nav="false">Sign out</a>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/auth/signin?returnUrl=%2Fdevelop" data-enhance-nav="false">Sign in</a>
+                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/auth/signin?returnUrl=%2Fplayer%2Flibrary" data-enhance-nav="false">Sign in</a>
                         <a class="rounded-full bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200" href="/library">Browse games</a>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -44,14 +49,19 @@
 
     <footer class="border-t border-white/10 bg-slate-950/50">
         <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-slate-300 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <div>Public catalog browse and authenticated developer workflows now share the same web surface.</div>
+            <div>Public catalog browse, authenticated player spaces, and developer workflows now share the same web surface.</div>
             <div class="flex gap-4 text-slate-400">
-                <a class="transition hover:text-cyan-200" href="/library">Library</a>
-                <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
+                <a class="transition hover:text-cyan-200" href="/library">Public Library</a>
                 <AuthorizeView>
                     <Authorized>
+                        <a class="transition hover:text-cyan-200" href="/player/library">Player Library</a>
+                        <a class="transition hover:text-cyan-200" href="/player/wishlist">Wishlist</a>
+                        <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
                         <a class="transition hover:text-cyan-200" href="/account">Account</a>
                     </Authorized>
+                    <NotAuthorized>
+                        <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
+                    </NotAuthorized>
                 </AuthorizeView>
             </div>
         </div>

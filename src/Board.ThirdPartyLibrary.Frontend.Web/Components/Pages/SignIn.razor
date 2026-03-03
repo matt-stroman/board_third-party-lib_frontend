@@ -44,7 +44,7 @@
     {
         <h1 class="mt-4 app-page-title">Redirecting to sign in</h1>
         <p class="mt-4 text-base leading-8 text-slate-300">
-            Continue to the secure Keycloak sign-in flow and the app will return you here when authentication completes.
+            Continue to the secure Keycloak sign-in flow and the app will return you to your player library when authentication completes.
         </p>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@SignInHref" data-enhance-nav="false">Continue to sign in</a>
@@ -60,6 +60,6 @@
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
 
-    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/develop" : ReturnUrl)}";
-    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/develop" : ReturnUrl)}";
+    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/library" : ReturnUrl)}";
+    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/library" : ReturnUrl)}";
 }

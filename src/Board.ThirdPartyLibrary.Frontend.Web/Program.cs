@@ -111,10 +111,10 @@ static string SanitizeReturnUrl(string? returnUrl)
 {
     if (string.IsNullOrWhiteSpace(returnUrl))
     {
-        return "/library";
+        return "/player/library";
     }
 
-    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/library";
+    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player/library";
 }
 
 static string BuildSignInUnavailableUrl(string returnUrl) =>

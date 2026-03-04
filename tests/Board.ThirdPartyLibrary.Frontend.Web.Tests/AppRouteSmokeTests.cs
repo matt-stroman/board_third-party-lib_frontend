@@ -35,6 +35,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [InlineData("/moderation/developer-enrollment-requests", "Developer Enrollment Queue")]
     [InlineData("/account", "Player library access")]
     [InlineData("/account/developer-access", "Developer Access")]
+    [InlineData("/account/notifications", "No notifications yet")]
     [InlineData("/signin?error=identity-provider-unavailable", "Sign in is unavailable right now")]
     public async Task Route_ReturnsSuccessfulResponse_WithExpectedMarker(string route, string expectedContent)
     {
@@ -99,7 +100,115 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Register as a Developer", content);
-        Assert.Contains("pending moderation record", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Moderators can approve", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AccountRoute_WithUnreadNotifications_ShowsNotificationBadge()
+    {
+        using var factory = new TestWebApplicationFactory(
+            TestApiData.Default with
+            {
+                Notifications = new NotificationListResponse(
+                [
+                    new UserNotification(
+                        Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"),
+                        "developer_enrollment",
+                        "More information requested",
+                        "A moderator requested more details.",
+                        "/account/developer-access",
+                        false,
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        null),
+                    new UserNotification(
+                        Guid.Parse("bbbbbbbb-2222-2222-2222-222222222222"),
+                        "developer_enrollment",
+                        "Developer access approved",
+                        "The developer console is available.",
+                        "/develop",
+                        false,
+                        DateTime.Parse("2026-03-03T21:00:00Z"),
+                        null)
+                ])
+            });
+
+        using var unreadClient = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        var response = await unreadClient.GetAsync("/account");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("2 unread notifications", content);
+    }
+
+    [Fact]
+    public async Task ModerationRoute_WithAwaitingApplicantFilter_ShowsOnlyMatchingRequests()
+    {
+        using var factory = new TestWebApplicationFactory(
+            TestApiData.Default with
+            {
+                EnrollmentRequests = new DeveloperEnrollmentRequestListResponse(
+                [
+                    new DeveloperEnrollmentRequest(
+                        Guid.Parse("55555555-5555-5555-5555-555555555555"),
+                        "user-789",
+                        "Pending Dev",
+                        "pending-dev@boardtpl.local",
+                        "pending_review",
+                        "moderator",
+                        false,
+                        DateTime.Parse("2026-03-02T18:00:00Z"),
+                        DateTime.Parse("2026-03-02T18:00:00Z"),
+                        null,
+                        null,
+                        null),
+                    new DeveloperEnrollmentRequest(
+                        Guid.Parse("66666666-6666-6666-6666-666666666666"),
+                        "user-987",
+                        "Needs Reply",
+                        "needs-reply@boardtpl.local",
+                        "awaiting_applicant_response",
+                        "applicant",
+                        false,
+                        DateTime.Parse("2026-03-02T19:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        null,
+                        null,
+                        null),
+                    new DeveloperEnrollmentRequest(
+                        Guid.Parse("77777777-7777-7777-7777-777777777777"),
+                        "user-654",
+                        "Approved Dev",
+                        "approved-dev@boardtpl.local",
+                        "approved",
+                        "none",
+                        true,
+                        DateTime.Parse("2026-03-01T18:00:00Z"),
+                        DateTime.Parse("2026-03-01T20:00:00Z"),
+                        DateTime.Parse("2026-03-01T20:00:00Z"),
+                        null,
+                        "moderator-1")
+                ])
+            });
+
+        using var moderationClient = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+
+        var response = await moderationClient.GetAsync("/moderation/developer-enrollment-requests?filter=awaiting-applicant");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Waiting on applicants", content);
+        Assert.Contains("Needs Reply", content);
+        Assert.DoesNotContain("Pending Dev", content);
+        Assert.DoesNotContain("Approved Dev", content);
     }
 
     public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
@@ -159,7 +268,8 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         DeveloperEnrollmentResponse? DeveloperEnrollment = null,
         BoardProfile? BoardProfile = null,
         DeveloperOrganizationListResponse? ManagedOrganizations = null,
-        DeveloperEnrollmentRequestListResponse? EnrollmentRequests = null)
+        DeveloperEnrollmentRequestListResponse? EnrollmentRequests = null,
+        NotificationListResponse? Notifications = null)
     {
         public static TestApiData Default { get; } = new(
             CurrentUser: new CurrentUserResponse(
@@ -173,10 +283,15 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                 new DeveloperEnrollment(
                     Guid.Parse("44444444-4444-4444-4444-444444444444"),
                     "approved",
+                    "none",
                     true,
+                    false,
+                    false,
                     false,
                     DateTime.Parse("2026-03-01T18:00:00Z"),
                     DateTime.Parse("2026-03-01T19:00:00Z"),
+                    DateTime.Parse("2026-03-01T19:00:00Z"),
+                    null,
                     "moderator-1")),
             BoardProfile: new BoardProfile(
                 "board_user_12345",
@@ -201,9 +316,12 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "user-789",
                         "Pending Dev",
                         "pending-dev@boardtpl.local",
-                        "pending",
+                        "pending_review",
+                        "moderator",
                         false,
                         DateTime.Parse("2026-03-02T18:00:00Z"),
+                        DateTime.Parse("2026-03-02T18:00:00Z"),
+                        null,
                         null,
                         null)
                 ]));
@@ -301,8 +419,13 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     new DeveloperEnrollment(
                         null,
                         "not_requested",
+                        "none",
                         false,
                         true,
+                        false,
+                        false,
+                        null,
+                        null,
                         null,
                         null,
                         null)));
@@ -313,10 +436,63 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                 ?? new DeveloperEnrollmentResponse(
                     new DeveloperEnrollment(
                         Guid.Parse("66666666-6666-6666-6666-666666666666"),
-                        "pending",
+                        "pending_review",
+                        "moderator",
+                        false,
+                        false,
                         false,
                         false,
                         DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        null,
+                        null,
+                        null)));
+
+        public Task<DeveloperEnrollmentResponse> CancelDeveloperEnrollmentAsync(Guid requestId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new DeveloperEnrollmentResponse(
+                    new DeveloperEnrollment(
+                        requestId,
+                        "cancelled",
+                        "none",
+                        false,
+                        true,
+                        false,
+                        false,
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:15:00Z"),
+                        null,
+                        null,
+                        null)));
+
+        public Task<DeveloperEnrollmentConversationResponse> GetDeveloperEnrollmentConversationAsync(Guid requestId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new DeveloperEnrollmentConversationResponse(
+                    new DeveloperEnrollmentConversation(
+                        requestId,
+                        data.DeveloperEnrollment?.DeveloperEnrollment.Status ?? "not_requested",
+                        data.DeveloperEnrollment?.DeveloperEnrollment.ActionRequiredBy ?? "none",
+                        data.DeveloperEnrollment?.DeveloperEnrollment.ReviewedAt,
+                        data.DeveloperEnrollment?.DeveloperEnrollment.ReviewerSubject,
+                        [])));
+
+        public Task<ApiFileDownload?> GetDeveloperEnrollmentAttachmentAsync(Guid requestId, Guid attachmentId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<ApiFileDownload?>(new ApiFileDownload("proof.txt", "text/plain", "ok"u8.ToArray()));
+
+        public Task<DeveloperEnrollmentResponse> ReplyToDeveloperEnrollmentAsync(Guid requestId, string? message, IReadOnlyList<ApiUploadFile> attachments, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new DeveloperEnrollmentResponse(
+                    new DeveloperEnrollment(
+                        requestId,
+                        "pending_review",
+                        "moderator",
+                        false,
+                        false,
+                        false,
+                        false,
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:20:00Z"),
+                        null,
                         null,
                         null)));
 
@@ -332,12 +508,15 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "Pending Dev",
                         "pending-dev@boardtpl.local",
                         "approved",
+                        "none",
                         true,
                         DateTime.Parse("2026-03-02T18:00:00Z"),
                         DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        null,
                         data.CurrentUser.Subject)));
 
-        public Task<DeveloperEnrollmentRequestResponse> RejectDeveloperEnrollmentRequestAsync(Guid requestId, CancellationToken cancellationToken = default) =>
+        public Task<DeveloperEnrollmentRequestResponse> RejectDeveloperEnrollmentRequestAsync(Guid requestId, string message, IReadOnlyList<ApiUploadFile> attachments, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new DeveloperEnrollmentRequestResponse(
                     new DeveloperEnrollmentRequest(
@@ -346,10 +525,42 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "Pending Dev",
                         "pending-dev@boardtpl.local",
                         "rejected",
+                        "none",
                         false,
                         DateTime.Parse("2026-03-02T18:00:00Z"),
                         DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        DateTime.Parse("2026-04-02T20:00:00Z"),
                         data.CurrentUser.Subject)));
+
+        public Task<DeveloperEnrollmentRequestResponse> RequestMoreInformationForDeveloperEnrollmentAsync(Guid requestId, string message, IReadOnlyList<ApiUploadFile> attachments, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new DeveloperEnrollmentRequestResponse(
+                    new DeveloperEnrollmentRequest(
+                        requestId,
+                        "user-789",
+                        "Pending Dev",
+                        "pending-dev@boardtpl.local",
+                        "awaiting_applicant_response",
+                        "applicant",
+                        false,
+                        DateTime.Parse("2026-03-02T18:00:00Z"),
+                        DateTime.Parse("2026-03-03T20:00:00Z"),
+                        null,
+                        null,
+                        null)));
+
+        public Task<DeveloperEnrollmentConversationResponse> GetModeratedDeveloperEnrollmentConversationAsync(Guid requestId, CancellationToken cancellationToken = default) =>
+            GetDeveloperEnrollmentConversationAsync(requestId, cancellationToken);
+
+        public Task<ApiFileDownload?> GetModeratedDeveloperEnrollmentAttachmentAsync(Guid requestId, Guid attachmentId, CancellationToken cancellationToken = default) =>
+            GetDeveloperEnrollmentAttachmentAsync(requestId, attachmentId, cancellationToken);
+
+        public Task<NotificationListResponse> GetNotificationsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(data.Notifications ?? new NotificationListResponse([]));
+
+        public Task<NotificationResponse> MarkNotificationReadAsync(Guid notificationId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new NotificationResponse(new UserNotification(notificationId, "developer_enrollment", "Developer access update", "Marked read.", "/account/developer-access", true, DateTime.Parse("2026-03-03T20:00:00Z"), DateTime.Parse("2026-03-03T20:05:00Z"))));
 
         public Task<DeveloperOrganizationListResponse> GetManagedOrganizationsAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(data.ManagedOrganizations ?? new DeveloperOrganizationListResponse([]));

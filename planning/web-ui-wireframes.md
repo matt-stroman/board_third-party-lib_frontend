@@ -297,16 +297,17 @@ Goal:
 
 Goal:
 
-- provide the explicit post-sign-in route where a player can see developer-registration status and submit a request
+- provide the explicit post-sign-in route where a player can see developer-registration status, submit or cancel a request, and reply to moderator follow-up questions on the same request
 
 ```text
 +------------------------------------------------------+
 | Developer access                                     |
 +------------------------------------------------------+
 | Explanation: new accounts start as players           |
-| Current state: not requested / pending / approved / rejected |
-| Action: register as a developer                      |
-| Review state: waiting for moderator decision         |
+| Current state: not requested / pending / awaiting reply / approved / rejected |
+| Action: register as a developer / cancel request     |
+| Conversation thread + attachments                    |
+| Review state: waiting for moderator decision or applicant reply |
 | Back to player library                               |
 +------------------------------------------------------+
 ```
@@ -379,16 +380,17 @@ Player-only state:
 
 Goal:
 
-- give moderators a single queue for reviewing pending developer registrations
+- give moderators a single queue for reviewing developer registrations with fast filters and in-thread follow-up actions
 
 ```text
 +----------------------------------------------------------------------------------+
 | Developer enrollment queue                                                       |
 +----------------------------------------------------------------------------------+
-| KPI strip: pending | approved | rejected                                         |
+| KPI strip: pending | awaiting applicant | reviewed                               |
+| Filter pills: all | waiting on moderators | waiting on applicants | reviewed     |
 +----------------------------------------------------------------------------------+
-| [request card] applicant | requested at | approve | reject                       |
-| [request card] applicant | reviewed state                                         |
+| [request card] applicant | requested at | approve | reject | request info        |
+| [request card] thread history | attachments | reviewed state                      |
 +----------------------------------------------------------------------------------+
 ```
 

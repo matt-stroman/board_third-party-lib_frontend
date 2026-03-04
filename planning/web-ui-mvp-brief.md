@@ -148,7 +148,7 @@ Recommended initial routes:
 ### Moderation routes
 
 - `/moderation/developer-enrollment-requests`
-  - moderator queue for approving or rejecting pending developer registrations
+  - moderator queue for filtering and reviewing developer registrations, including approve, reject, request-more-information, and thread review actions
 
 ### Player routes
 

@@ -106,6 +106,7 @@ builder.Services.AddHttpClient<IBoardLibraryApiClient, BoardLibraryApiClient>(cl
     client.DefaultRequestVersion = HttpVersion.Version20;
     client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
 });
+builder.Services.AddScoped<INotificationCenter, NotificationCenter>();
 
 static string SanitizeReturnUrl(string? returnUrl)
 {
@@ -208,6 +209,28 @@ app.MapGet("/auth/signout", async (
         return Results.Redirect(sanitizedReturnUrl);
     }
 });
+app.MapGet("/downloads/developer-enrollment/{requestId:guid}/attachments/{attachmentId:guid}", async (
+    Guid requestId,
+    Guid attachmentId,
+    IBoardLibraryApiClient apiClient,
+    CancellationToken cancellationToken) =>
+{
+    var file = await apiClient.GetDeveloperEnrollmentAttachmentAsync(requestId, attachmentId, cancellationToken);
+    return file is null
+        ? Results.NotFound()
+        : Results.File(file.Content, file.ContentType, file.FileName);
+}).RequireAuthorization();
+app.MapGet("/downloads/moderation/developer-enrollment/{requestId:guid}/attachments/{attachmentId:guid}", async (
+    Guid requestId,
+    Guid attachmentId,
+    IBoardLibraryApiClient apiClient,
+    CancellationToken cancellationToken) =>
+{
+    var file = await apiClient.GetModeratedDeveloperEnrollmentAttachmentAsync(requestId, attachmentId, cancellationToken);
+    return file is null
+        ? Results.NotFound()
+        : Results.File(file.Content, file.ContentType, file.FileName);
+}).RequireAuthorization();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

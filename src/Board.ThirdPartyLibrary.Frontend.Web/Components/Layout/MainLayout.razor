@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject INotificationCenter NotificationCenter
 
 <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(86,189,196,0.32),_transparent_32%),linear-gradient(180deg,_#04131d_0%,_#0a1d2c_45%,_#09111d_100%)] text-slate-100">
     <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur">
@@ -20,6 +23,13 @@
                         <NavLink class="app-nav-link" href="/player/library">Player Library</NavLink>
                         <NavLink class="app-nav-link" href="/player/wishlist">Wishlist</NavLink>
                         <NavLink class="app-nav-link" href="/develop">Develop</NavLink>
+                        <NavLink class="app-nav-link" href="/account/notifications">
+                            Notifications
+                            @if (NotificationCenter.UnreadCount > 0)
+                            {
+                                <span class="ml-2 rounded-full bg-cyan-300 px-2 py-0.5 text-[0.65rem] font-bold tracking-[0.16em] text-slate-950" aria-label="@($"{NotificationCenter.UnreadCount} unread notifications")">@FormatUnreadCount(NotificationCenter.UnreadCount)</span>
+                            }
+                        </NavLink>
                         <NavLink class="app-nav-link" href="/account">Account</NavLink>
                         <AuthorizeView Roles="moderator,admin">
                             <Authorized Context="moderatorNav">
@@ -36,6 +46,13 @@
                 <AuthorizeView>
                     <Authorized Context="authenticatedActions">
                         <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/player/library">Player Library</a>
+                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/account/notifications">
+                            Notifications
+                            @if (NotificationCenter.UnreadCount > 0)
+                            {
+                                <span class="ml-2 rounded-full bg-cyan-300 px-2 py-0.5 text-[0.65rem] font-bold tracking-[0.16em] text-slate-950" aria-label="@($"{NotificationCenter.UnreadCount} unread notifications")">@FormatUnreadCount(NotificationCenter.UnreadCount)</span>
+                            }
+                        </a>
                         <AuthorizeView Roles="moderator,admin">
                             <Authorized Context="moderatorActions">
                                 <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/moderation/developer-enrollment-requests">Moderation</a>
@@ -67,6 +84,13 @@
                         <a class="transition hover:text-cyan-200" href="/player/library">Player Library</a>
                         <a class="transition hover:text-cyan-200" href="/player/wishlist">Wishlist</a>
                         <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
+                        <a class="transition hover:text-cyan-200" href="/account/notifications">
+                            Notifications
+                            @if (NotificationCenter.UnreadCount > 0)
+                            {
+                                <span class="ml-2 rounded-full bg-cyan-300 px-2 py-0.5 text-[0.65rem] font-bold tracking-[0.16em] text-slate-950" aria-label="@($"{NotificationCenter.UnreadCount} unread notifications")">@FormatUnreadCount(NotificationCenter.UnreadCount)</span>
+                            }
+                        </a>
                         <a class="transition hover:text-cyan-200" href="/account">Account</a>
                         <AuthorizeView Roles="moderator,admin">
                             <Authorized Context="moderatorFooter">
@@ -88,3 +112,31 @@
         <span class="dismiss">x</span>
     </div>
 </div>
+
+@code {
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        NotificationCenter.Changed += HandleNotificationCenterChanged;
+
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authenticationState.User.Identity?.IsAuthenticated == true)
+        {
+            try
+            {
+                await NotificationCenter.EnsureLoadedAsync();
+            }
+            catch
+            {
+                // Avoid breaking shell rendering when notifications cannot be loaded.
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => NotificationCenter.Changed -= HandleNotificationCenterChanged;
+
+    private void HandleNotificationCenterChanged() => InvokeAsync(StateHasChanged);
+
+    private static string FormatUnreadCount(int unreadCount) => unreadCount > 99 ? "99+" : unreadCount.ToString();
+}

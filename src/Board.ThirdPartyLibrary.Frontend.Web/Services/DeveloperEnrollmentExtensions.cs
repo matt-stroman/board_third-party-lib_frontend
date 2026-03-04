@@ -15,13 +15,25 @@ internal static class DeveloperEnrollmentExtensions
     /// Returns <see langword="true" /> when the enrollment is pending review.
     /// </summary>
     public static bool IsPending(this DeveloperEnrollment? enrollment) =>
-        string.Equals(enrollment?.Status, "pending", StringComparison.OrdinalIgnoreCase);
+        string.Equals(enrollment?.Status, "pending_review", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Returns <see langword="true" /> when the enrollment is waiting on the applicant.
+    /// </summary>
+    public static bool IsAwaitingApplicantResponse(this DeveloperEnrollment? enrollment) =>
+        string.Equals(enrollment?.Status, "awaiting_applicant_response", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Returns <see langword="true" /> when the enrollment has been rejected.
     /// </summary>
     public static bool IsRejected(this DeveloperEnrollment? enrollment) =>
         string.Equals(enrollment?.Status, "rejected", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Returns <see langword="true" /> when the enrollment has been cancelled.
+    /// </summary>
+    public static bool IsCancelled(this DeveloperEnrollment? enrollment) =>
+        string.Equals(enrollment?.Status, "cancelled", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Returns <see langword="true" /> when the enrollment has not been requested yet.
@@ -39,7 +51,9 @@ internal static class DeveloperEnrollmentExtensions
             null => "Not requested",
             { DeveloperAccessEnabled: true } => "Enabled",
             _ when enrollment.IsPending() => "Pending review",
+            _ when enrollment.IsAwaitingApplicantResponse() => "Reply needed",
             _ when enrollment.IsRejected() => "Rejected",
+            _ when enrollment.IsCancelled() => "Cancelled",
             _ => "Not requested"
         };
 
@@ -52,7 +66,11 @@ internal static class DeveloperEnrollmentExtensions
             null => "Developer registration is available from the Develop area.",
             { DeveloperAccessEnabled: true } => "Developer console access is active for this account.",
             _ when enrollment.IsPending() => "Your request is waiting for moderator review.",
-            _ when enrollment.IsRejected() => "Your request was rejected and cannot be resubmitted yet.",
+            _ when enrollment.IsAwaitingApplicantResponse() => "A moderator requested more information before they can finish the review.",
+            _ when enrollment.IsRejected() => enrollment.CanSubmitRequest
+                ? "Your request was rejected, and you may now submit a new request."
+                : "Your request was rejected and cannot be resubmitted yet.",
+            _ when enrollment.IsCancelled() => "The previous request was cancelled. You may submit a new request whenever ready.",
             _ => "Developer registration is available from the Develop area."
         };
 }

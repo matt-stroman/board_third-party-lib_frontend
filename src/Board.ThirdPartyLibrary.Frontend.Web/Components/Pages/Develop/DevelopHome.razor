@@ -4,7 +4,7 @@
 
 <PageTitle>Developer Console</PageTitle>
 
-<section class="w-full space-y-6">
+<section class="app-workspace-shell space-y-6">
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <section class="app-panel p-6">
@@ -59,7 +59,7 @@
                 </div>
             </section>
 
-            <section class="grid w-full gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
+            <section class="app-workspace-grid">
                 <aside class="app-panel p-4">
 
                     @if (ActiveOrganization is not null)
@@ -136,7 +136,7 @@
                     </nav>
                 </aside>
 
-                <section class="app-panel p-6">
+                <section class="app-panel app-workspace-main p-6">
                     @if (IsBusy && !HasActiveDomainData())
                     {
                         <div class="h-7 w-52 animate-pulse rounded-full bg-white/10"></div>

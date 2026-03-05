@@ -93,7 +93,7 @@ builder.Services.AddAuthentication(options =>
 
                 var requestedReturnUrl = context.Properties?.RedirectUri;
                 var sanitizedReturnUrl = string.IsNullOrWhiteSpace(requestedReturnUrl) || !requestedReturnUrl.StartsWith("/", StringComparison.Ordinal)
-                    ? "/player/games"
+                    ? "/player"
                     : requestedReturnUrl;
 
                 var isCorrelationFailure =
@@ -147,10 +147,10 @@ static string SanitizeReturnUrl(string? returnUrl)
 {
     if (string.IsNullOrWhiteSpace(returnUrl))
     {
-        return "/player/games";
+        return "/player";
     }
 
-    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player/games";
+    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player";
 }
 
 static string BuildSignInUnavailableUrl(string returnUrl) =>

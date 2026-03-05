@@ -1,4 +1,4 @@
-@page "/account/profile"
+@page "/player/profile"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Components.Forms
 @inject IBoardLibraryApiClient ApiClient
@@ -27,7 +27,7 @@
             <section class="app-panel p-6">
                 <h1 class="app-page-title">Profile</h1>
                 <p class="mt-4 text-sm leading-7 text-slate-300">
-                    Public profile details appear across player and developer spaces. Avatar supports hosted URLs or direct upload.
+                    Update your display name and avatar.
                 </p>
 
                 @if (!string.IsNullOrWhiteSpace(StatusMessage))

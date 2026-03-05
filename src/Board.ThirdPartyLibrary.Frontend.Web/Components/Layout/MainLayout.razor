@@ -23,13 +23,18 @@
                 </div>
             </a>
             <nav class="hidden items-center gap-2 md:flex">
-                <a class="@GamesLinkClass" href="/games" data-enhance-nav="false">Games</a>
-                <NavLink class="app-nav-link" href="/develop" data-enhance-nav="false">Develop</NavLink>
-                @if (ShowModerateSection)
-                {
-                    <NavLink class="app-nav-link" href="/moderate" data-enhance-nav="false">Moderate</NavLink>
-                }
-                <NavLink class="app-nav-link" href="/install-guide" data-enhance-nav="false">Install Guide</NavLink>
+                <a class="@BrowseLinkClass" href="/browse" data-enhance-nav="false">Browse</a>
+                <AuthorizeView>
+                    <Authorized>
+                        <NavLink class="app-nav-link" href="/player" data-enhance-nav="false">Play</NavLink>
+                        <NavLink class="app-nav-link" href="/develop" data-enhance-nav="false">Develop</NavLink>
+                        @if (ShowModerateSection)
+                        {
+                            <NavLink class="app-nav-link" href="/moderate" data-enhance-nav="false">Moderate</NavLink>
+                        }
+                    </Authorized>
+                </AuthorizeView>
+                <NavLink class="app-nav-link" href="/install-guide" data-enhance-nav="false">Install</NavLink>
             </nav>
             <div class="flex items-center gap-3">
                 <a class="inline-flex size-11 items-center justify-center rounded-full border border-white/15 text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="https://discord.gg/cz2zReWqcA" target="_blank" rel="noreferrer" aria-label="Join the Board Enthusiasts Discord">
@@ -73,8 +78,8 @@
 
                                     <div class="border-t border-white/10"></div>
                                     <nav class="p-2 text-sm text-slate-200">
-                                        <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/account/profile" @onclick="CloseUserMenu">Profile</a>
-                                        <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/player/games" @onclick="CloseUserMenu">My Games</a>
+                                        <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/player/profile" @onclick="CloseUserMenu">Profile</a>
+                                        <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/player" @onclick="CloseUserMenu">My Games</a>
                                         <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/player/wishlist" @onclick="CloseUserMenu">Wishlist</a>
                                     </nav>
 
@@ -101,26 +106,31 @@
 
                                     <div class="border-t border-white/10"></div>
                                     <nav class="p-2 text-sm text-slate-200">
-                                        <a class="block rounded-xl px-3 py-2 text-rose-100 transition hover:bg-rose-400/20" href="/auth/signout?returnUrl=%2Fgames" data-enhance-nav="false" @onclick="CloseUserMenu">Sign Out</a>
+                                        <a class="block rounded-xl px-3 py-2 text-rose-100 transition hover:bg-rose-400/20" href="/auth/signout?returnUrl=%2Fbrowse" data-enhance-nav="false" @onclick="CloseUserMenu">Sign Out</a>
                                     </nav>
                                 </section>
                             }
                         </div>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/auth/signin?returnUrl=%2Fplayer%2Fgames" data-enhance-nav="false">Sign In</a>
+                        <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100" href="/auth/signin?returnUrl=%2Fplayer" data-enhance-nav="false">Sign In</a>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
         </div>
         <div class="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-4 sm:px-6 md:hidden lg:px-8">
-            <a class="@($"{GamesLinkClass} whitespace-nowrap")" href="/games" data-enhance-nav="false">Games</a>
-            <NavLink class="app-nav-link whitespace-nowrap" href="/develop" data-enhance-nav="false">Develop</NavLink>
-            @if (ShowModerateSection)
-            {
-                <NavLink class="app-nav-link whitespace-nowrap" href="/moderate" data-enhance-nav="false">Moderate</NavLink>
-            }
-            <NavLink class="app-nav-link whitespace-nowrap" href="/install-guide" data-enhance-nav="false">Install Guide</NavLink>
+            <a class="@($"{BrowseLinkClass} whitespace-nowrap")" href="/browse" data-enhance-nav="false">Browse</a>
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="app-nav-link whitespace-nowrap" href="/player" data-enhance-nav="false">Play</NavLink>
+                    <NavLink class="app-nav-link whitespace-nowrap" href="/develop" data-enhance-nav="false">Develop</NavLink>
+                    @if (ShowModerateSection)
+                    {
+                        <NavLink class="app-nav-link whitespace-nowrap" href="/moderate" data-enhance-nav="false">Moderate</NavLink>
+                    }
+                </Authorized>
+            </AuthorizeView>
+            <NavLink class="app-nav-link whitespace-nowrap" href="/install-guide" data-enhance-nav="false">Install</NavLink>
         </div>
     </header>
 
@@ -132,10 +142,10 @@
         <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-slate-300 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>Browse games, manage your account, and build in the developer console.</div>
             <div class="flex gap-4 text-slate-400">
-                <a class="transition hover:text-cyan-200" href="/games">Games</a>
+                <a class="transition hover:text-cyan-200" href="/browse">Browse</a>
                 <AuthorizeView>
                     <Authorized>
-                        <a class="transition hover:text-cyan-200" href="/player/games">My Games</a>
+                        <a class="transition hover:text-cyan-200" href="/player">Play</a>
                         <a class="transition hover:text-cyan-200" href="/player/wishlist">Wishlist</a>
                         <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
                         @if (ShowModerateSection)
@@ -145,7 +155,7 @@
                         <a class="transition hover:text-cyan-200" href="/account">Account</a>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
+                        <a class="transition hover:text-cyan-200" href="/install-guide">Install</a>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
@@ -197,11 +207,11 @@
         UserProfileState.Changed -= HandleUserProfileStateChanged;
     }
 
-    private string GamesLinkClass => IsGamesRoute
+    private string BrowseLinkClass => IsBrowseRoute
         ? "app-nav-link active"
         : "app-nav-link";
 
-    private bool IsGamesRoute
+    private bool IsBrowseRoute
     {
         get
         {
@@ -211,7 +221,8 @@
                 return true;
             }
 
-            return relativePath.StartsWith("games", StringComparison.OrdinalIgnoreCase)
+            return relativePath.StartsWith("browse", StringComparison.OrdinalIgnoreCase)
+                || relativePath.StartsWith("organizations", StringComparison.OrdinalIgnoreCase)
                 || relativePath.StartsWith("library", StringComparison.OrdinalIgnoreCase);
         }
     }

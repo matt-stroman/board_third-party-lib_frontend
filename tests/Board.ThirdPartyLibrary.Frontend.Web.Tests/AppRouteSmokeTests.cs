@@ -27,11 +27,11 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
     [Theory]
     [InlineData("/", "Board Enthusiasts")]
-    [InlineData("/games", "Star Blasters")]
+    [InlineData("/browse", "Star Blasters")]
     [InlineData("/organizations/stellar-forge", "Stellar Forge")]
-    [InlineData("/player/games", "My Games")]
+    [InlineData("/player", "My Games")]
     [InlineData("/player/wishlist", "No wishlist items yet")]
-    [InlineData("/games/stellar-forge/star-blasters", "View on itch.io")]
+    [InlineData("/browse/stellar-forge/star-blasters", "View on itch.io")]
     [InlineData("/develop", "Stellar Forge")]
     [InlineData("/moderate", "Moderation access unavailable")]
     [InlineData("/develop/organizations/new", "Create organization")]
@@ -45,7 +45,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/releases", "Create release")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/acquisition", "Current bindings")]
     [InlineData("/account", "Player library access")]
-    [InlineData("/account/profile", "Public profile")]
+    [InlineData("/player/profile", "Profile")]
     [InlineData("/account/settings", "Account Settings")]
     [InlineData("/signin?error=identity-provider-unavailable", "Sign in is unavailable right now")]
     [InlineData("/signin?error=identity-provider-session-expired", "Sign-in session expired")]
@@ -135,6 +135,14 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     public async Task LegacyDeveloperAccessRoute_ReturnsNotFoundPage()
     {
         var response = await client.GetAsync("/account/developer-access");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LegacyGamesRoute_ReturnsNotFoundPage()
+    {
+        var response = await client.GetAsync("/games");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

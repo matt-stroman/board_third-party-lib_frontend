@@ -17,7 +17,7 @@
         {
             var currentRelativeUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
             var returnUrl = string.IsNullOrWhiteSpace(currentRelativeUri)
-                ? "/player/games"
+                ? "/player"
                 : currentRelativeUri.StartsWith('/') ? currentRelativeUri : $"/{currentRelativeUri}";
 
             return $"/auth/signin?returnUrl={Uri.EscapeDataString(returnUrl)}";

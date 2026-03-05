@@ -11,7 +11,7 @@
         </p>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@RetryHref" data-enhance-nav="false">Try again</a>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/games">Back to library</a>
+            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/browse">Back to browse</a>
         </div>
     }
     else if (string.Equals(Error, "identity-provider-auth-failed", StringComparison.Ordinal))
@@ -22,7 +22,7 @@
         </p>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@SignInHref" data-enhance-nav="false">Try again</a>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/games">Back to library</a>
+            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/browse">Back to browse</a>
         </div>
     }
     else if (string.Equals(Error, "identity-provider-session-expired", StringComparison.Ordinal))
@@ -33,18 +33,18 @@
         </p>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@SignInHref" data-enhance-nav="false">Start new sign in</a>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/games">Back to library</a>
+            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/browse">Back to browse</a>
         </div>
     }
     else
     {
         <h1 class="mt-4 app-page-title">Redirecting to sign in</h1>
         <p class="mt-4 text-base leading-8 text-slate-300">
-            Continue to secure sign in and return to your library when authentication completes.
+            Continue to secure sign in and return to your play area when authentication completes.
         </p>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@SignInHref" data-enhance-nav="false">Continue to sign in</a>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/games">Back to library</a>
+            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/browse">Back to browse</a>
         </div>
     }
 </section>
@@ -56,6 +56,6 @@
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
 
-    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/games" : ReturnUrl)}";
-    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/games" : ReturnUrl)}";
+    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player" : ReturnUrl)}";
+    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player" : ReturnUrl)}";
 }

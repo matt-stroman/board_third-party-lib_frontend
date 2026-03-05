@@ -1,27 +1,16 @@
-@page "/player/games"
+@page "/player"
+@page "/player/wishlist"
 @attribute [Authorize]
 @inject IBoardLibraryApiClient ApiClient
+@inject NavigationManager NavigationManager
 
-<PageTitle>My Games</PageTitle>
+<PageTitle>Player Area</PageTitle>
 
 <section class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <h1 class="mt-4 app-page-title">My Games</h1>
-            <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-                Your library titles will appear here.
-            </p>
-        </div>
-        <div class="flex flex-col gap-3 sm:flex-row">
-            <a class="rounded-full bg-cyan-300 px-5 py-3 text-center text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/games">Browse Games</a>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/player/wishlist">Open wishlist</a>
-        </div>
-    </div>
-
     @if (!string.IsNullOrWhiteSpace(ErrorMessage))
     {
         <section class="app-panel p-6">
-            <h2 class="text-xl font-semibold text-white">Player library unavailable</h2>
+            <h2 class="text-xl font-semibold text-white">Player area unavailable</h2>
             <p class="mt-3 text-sm leading-7 text-slate-300">@ErrorMessage</p>
         </section>
     }
@@ -34,44 +23,147 @@
     }
     else
     {
-        <section class="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <section class="app-panel p-6">
-                <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Signed in as</div>
-                <h2 class="mt-3 text-2xl font-semibold text-white">@CurrentUser.DisplayName</h2>
-                <div class="mt-3 text-sm text-slate-300">@CurrentUser.Email</div>
-                <div class="mt-6 grid gap-3 sm:grid-cols-2">
-                    <div class="rounded-[1.25rem] bg-black/15 p-4">
-                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Player access</div>
-                        <div class="mt-2 text-lg font-semibold text-white">Active</div>
-                        <div class="mt-2 text-sm text-slate-300">Ready to browse and manage your library.</div>
-                    </div>
-                    <div class="rounded-[1.25rem] bg-black/15 p-4">
-                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Developer access</div>
-                        <div class="mt-2 text-lg font-semibold text-white">@EnrollmentState.ToStatusLabel()</div>
-                        <div class="mt-2 text-sm text-slate-300">@EnrollmentState.ToStatusDescription()</div>
-                    </div>
+        <section class="space-y-4">
+            <div>
+                <h1 class="app-page-title">Player Area</h1>
+                <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+                    Manage your games, wishlist, and profile.
+                </p>
+            </div>
+
+            <section class="app-panel p-4">
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var domain in PlayerDomains)
+                    {
+                        <button class="@GetDomainButtonClass(domain)"
+                                type="button"
+                                @onclick="() => SelectDomain(domain)">
+                            @GetDomainLabel(domain)
+                        </button>
+                    }
                 </div>
             </section>
 
-            <section class="app-panel p-6">
-                <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Library</div>
-                <h2 class="mt-3 text-2xl font-semibold text-white">No games yet</h2>
-                <p class="mt-3 text-sm leading-7 text-slate-300">
-                    When you add games, they will show up here for quick access.
-                </p>
+            <section class="grid gap-4 xl:grid-cols-[18rem_1fr]">
+                <aside class="app-panel p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-cyan-100/70">Section</div>
+                    <nav class="mt-3 space-y-2">
+                        @foreach (var workflow in GetWorkflows(ActiveDomain))
+                        {
+                            <button class="@GetWorkflowButtonClass(workflow.Key)"
+                                    type="button"
+                                    @onclick="() => SelectWorkflow(workflow.Key)">
+                                @workflow.Label
+                            </button>
+                        }
+                    </nav>
+                </aside>
+
+                <section class="app-panel p-6">
+                    @if (ActiveWorkflow == "library-games")
+                    {
+                        <h2 class="text-2xl font-semibold text-white">My Games</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            Your library titles will appear here.
+                        </p>
+                        <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                            <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Library</div>
+                            <div class="mt-2 text-lg font-semibold text-white">No games yet</div>
+                            <p class="mt-2 text-sm text-slate-300">Browse games to get started.</p>
+                        </div>
+                        <div class="mt-6">
+                            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
+                        </div>
+                    }
+                    else if (ActiveWorkflow == "library-wishlist")
+                    {
+                        <h2 class="text-2xl font-semibold text-white">Wishlist</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            Save titles you want to come back to later.
+                        </p>
+                        <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                            <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Wishlist</div>
+                            <div class="mt-2 text-lg font-semibold text-white">No wishlist items yet</div>
+                            <p class="mt-2 text-sm text-slate-300">Add games from Browse to track them here.</p>
+                        </div>
+                        <div class="mt-6">
+                            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
+                        </div>
+                    }
+                    else if (ActiveWorkflow == "account-profile")
+                    {
+                        <h2 class="text-2xl font-semibold text-white">Profile</h2>
+                        @if (Profile is null)
+                        {
+                            <p class="mt-3 text-sm text-slate-300">Profile details are unavailable right now.</p>
+                        }
+                        else
+                        {
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <div class="rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                    <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Display Name</div>
+                                    <div class="mt-2 text-white">@Profile.DisplayName</div>
+                                </div>
+                                <div class="rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                    <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Username</div>
+                                    <div class="mt-2 text-white">@Profile.UserName</div>
+                                </div>
+                                <div class="rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                    <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Email</div>
+                                    <div class="mt-2 text-white">@Profile.Email</div>
+                                </div>
+                                <div class="rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                    <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Email Status</div>
+                                    <div class="mt-2 text-white">@(Profile.EmailVerified ? "Verified" : "Pending verification")</div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mt-6 flex flex-wrap gap-3">
+                            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/player/profile">Edit Profile</a>
+                            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/account/settings">Account Settings</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-sm text-slate-300">Select an option.</p>
+                    }
+                </section>
             </section>
         </section>
     }
 </section>
 
 @code {
+    private static readonly PlayerDomain[] PlayerDomains =
+    [
+        PlayerDomain.Library,
+        PlayerDomain.Account
+    ];
+
     private CurrentUserResponse? CurrentUser { get; set; }
 
     private DeveloperEnrollment? EnrollmentState { get; set; }
 
+    private UserProfile? Profile { get; set; }
+
     private string? ErrorMessage { get; set; }
 
+    private PlayerDomain ActiveDomain { get; set; } = PlayerDomain.Library;
+
+    private string ActiveWorkflow { get; set; } = "library-games";
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadBaselineAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        SyncWorkflowFromRoute();
+    }
+
+    private async Task LoadBaselineAsync()
     {
         ErrorMessage = null;
 
@@ -79,6 +171,7 @@
         {
             CurrentUser = await ApiClient.GetCurrentUserAsync();
             EnrollmentState = (await ApiClient.GetDeveloperEnrollmentAsync()).DeveloperEnrollment;
+            Profile = await ApiClient.GetCurrentUserProfileAsync();
 
             if (CurrentUser is null)
             {
@@ -89,5 +182,77 @@
         {
             ErrorMessage = exception.Message;
         }
+    }
+
+    private void SyncWorkflowFromRoute()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var pathOnly = relativePath.Split('?', '#')[0];
+
+        if (pathOnly.EndsWith("/wishlist", StringComparison.OrdinalIgnoreCase))
+        {
+            ActiveDomain = PlayerDomain.Library;
+            ActiveWorkflow = "library-wishlist";
+            return;
+        }
+
+        ActiveDomain = PlayerDomain.Library;
+        ActiveWorkflow = "library-games";
+    }
+
+    private void SelectDomain(PlayerDomain domain)
+    {
+        ActiveDomain = domain;
+        ActiveWorkflow = GetWorkflows(domain).First().Key;
+    }
+
+    private void SelectWorkflow(string workflowKey)
+    {
+        ActiveWorkflow = workflowKey;
+    }
+
+    private static string GetDomainLabel(PlayerDomain domain) => domain switch
+    {
+        PlayerDomain.Library => "Library",
+        PlayerDomain.Account => "Account",
+        _ => domain.ToString()
+    };
+
+    private static IReadOnlyList<PlayerWorkflow> GetWorkflows(PlayerDomain domain) => domain switch
+    {
+        PlayerDomain.Library =>
+        [
+            new("library-games", "My Games"),
+            new("library-wishlist", "Wishlist")
+        ],
+        PlayerDomain.Account =>
+        [
+            new("account-profile", "Profile")
+        ],
+        _ => []
+    };
+
+    private string GetDomainButtonClass(PlayerDomain domain)
+    {
+        const string baseClass = "rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.14em] transition";
+        return ActiveDomain == domain
+            ? $"{baseClass} bg-cyan-300 text-slate-950"
+            : $"{baseClass} border border-white/15 text-slate-100 hover:border-cyan-300/60 hover:text-cyan-100";
+    }
+
+    private string GetWorkflowButtonClass(string workflowKey)
+    {
+        const string baseClass = "w-full rounded-[0.9rem] border px-3 py-2 text-left text-sm transition";
+        return ActiveWorkflow == workflowKey
+            ? $"{baseClass} border-cyan-300/45 bg-cyan-300/15 text-cyan-50"
+            : $"{baseClass} border-white/10 bg-black/15 text-slate-200 hover:border-cyan-300/45 hover:text-cyan-100";
+    }
+
+    private readonly record struct PlayerWorkflow(string Key, string Label);
+
+    private enum PlayerDomain
+    {
+        Library,
+        Account
     }
 }

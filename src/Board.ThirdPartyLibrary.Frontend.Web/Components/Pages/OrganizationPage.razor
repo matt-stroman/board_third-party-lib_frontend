@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/games">Back to games</a>
+                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/browse">Back to browse</a>
                     <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="@BuildOrganizationHref(clearGenreFilters: true, acquisitionOnly: false, pageNumber: 1)">Reset filters</a>
                 </div>
             </div>
@@ -115,7 +115,7 @@
             <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach (var title in PagedTitles)
                 {
-                    <a class="app-panel p-5 transition hover:-translate-y-1 hover:border-cyan-300/35" href="@($"/games/{title.OrganizationSlug}/{title.Slug}")">
+                    <a class="app-panel p-5 transition hover:-translate-y-1 hover:border-cyan-300/35" href="@($"/browse/{title.OrganizationSlug}/{title.Slug}")">
                         <div class="h-36 rounded-[1.4rem] bg-cover bg-center @GetCardFallbackGradient(title)" style="@GetCardStyle(title)"></div>
                         <div class="mt-4 flex flex-wrap gap-2">
                             @foreach (var genreTag in ParseGenreTags(title.GenreDisplay))

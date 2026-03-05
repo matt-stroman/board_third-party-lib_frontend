@@ -28,6 +28,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [Theory]
     [InlineData("/", "Board Enthusiasts")]
     [InlineData("/games", "Star Blasters")]
+    [InlineData("/organizations/stellar-forge", "Stellar Forge")]
     [InlineData("/player/games", "My Games")]
     [InlineData("/player/wishlist", "No wishlist items yet")]
     [InlineData("/games/stellar-forge/star-blasters", "View on itch.io")]
@@ -369,33 +370,96 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
     private sealed class StubBoardLibraryApiClient(TestApiData data) : IBoardLibraryApiClient
     {
-        public Task<CatalogTitleListResponse> GetCatalogTitlesAsync(CatalogBrowseRequest request, CancellationToken cancellationToken = default) =>
-            Task.FromResult(
+        public Task<CatalogTitleListResponse> GetCatalogTitlesAsync(CatalogBrowseRequest request, CancellationToken cancellationToken = default)
+        {
+            var allTitles = new[]
+            {
+                new CatalogTitleSummary(
+                    Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    "stellar-forge",
+                    "star-blasters",
+                    "game",
+                    "testing",
+                    "listed",
+                    2,
+                    "Star Blasters",
+                    "Family space battles in short rounds.",
+                    "Action, Shooter",
+                    1,
+                    4,
+                    "1-4 players",
+                    "ESRB",
+                    "E10+",
+                    10,
+                    "ESRB E10+",
+                    "https://cdn.example.com/titles/star-blasters/card.png",
+                    "https://stellar-forge.itch.io/star-blasters"),
+                new CatalogTitleSummary(
+                    Guid.Parse("44444444-4444-4444-4444-444444444444"),
+                    Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    "stellar-forge",
+                    "puzzle-grove",
+                    "game",
+                    "published",
+                    "listed",
+                    1,
+                    "Puzzle Grove",
+                    "A quiet co-op puzzle journey.",
+                    "Puzzle, Family",
+                    1,
+                    2,
+                    "1-2 players",
+                    "ESRB",
+                    "E",
+                    6,
+                    "ESRB E",
+                    "https://cdn.example.com/titles/puzzle-grove/card.png",
+                    null)
+            };
+
+            var filtered = allTitles.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(request.OrganizationSlug))
+            {
+                filtered = filtered.Where(candidate =>
+                    string.Equals(candidate.OrganizationSlug, request.OrganizationSlug, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ContentKind))
+            {
+                filtered = filtered.Where(candidate =>
+                    string.Equals(candidate.ContentKind, request.ContentKind, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Genre))
+            {
+                filtered = filtered.Where(candidate =>
+                    string.Equals(candidate.GenreDisplay, request.Genre, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var ordered = string.Equals(request.Sort, "genre", StringComparison.OrdinalIgnoreCase)
+                ? filtered.OrderBy(candidate => candidate.GenreDisplay).ThenBy(candidate => candidate.DisplayName)
+                : filtered.OrderBy(candidate => candidate.DisplayName).ThenBy(candidate => candidate.OrganizationSlug);
+
+            var result = ordered.ToArray();
+            var pageSize = request.PageSize <= 0 ? 12 : request.PageSize;
+            var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+            var totalPages = result.Length == 0 ? 0 : (int)Math.Ceiling(result.Length / (double)pageSize);
+            var skip = (pageNumber - 1) * pageSize;
+            var page = result.Skip(skip).Take(pageSize).ToArray();
+
+            return Task.FromResult(
                 new CatalogTitleListResponse(
-                    [
-                        new CatalogTitleSummary(
-                            Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                            Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                            "stellar-forge",
-                            "star-blasters",
-                            "game",
-                            "testing",
-                            "listed",
-                            2,
-                            "Star Blasters",
-                            "Family space battles in short rounds.",
-                            "Arcade Shooter",
-                            1,
-                            4,
-                            "1-4 players",
-                            "ESRB",
-                            "E10+",
-                            10,
-                            "ESRB E10+",
-                            "https://cdn.example.com/titles/star-blasters/card.png",
-                            "https://stellar-forge.itch.io/star-blasters")
-                    ],
-                    new CatalogPaging(1, 12, 1, 1, false, false)));
+                    page,
+                    new CatalogPaging(
+                        pageNumber,
+                        pageSize,
+                        result.Length,
+                        totalPages,
+                        pageNumber > 1 && totalPages > 0,
+                        pageNumber < totalPages)));
+        }
 
         public Task<CatalogTitle?> GetCatalogTitleAsync(string organizationSlug, string titleSlug, CancellationToken cancellationToken = default) =>
             Task.FromResult<CatalogTitle?>(
@@ -445,6 +509,33 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "https://itch.io/"),
                     DateTime.Parse("2026-03-02T18:00:00Z"),
                     DateTime.Parse("2026-03-02T18:10:00Z")));
+
+        public Task<OrganizationListResponse> GetPublicOrganizationsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new OrganizationListResponse(
+                [
+                    new OrganizationSummary(
+                        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                        "stellar-forge",
+                        "Stellar Forge",
+                        "Family co-op studio.",
+                        "https://cdn.example.com/orgs/stellar-forge.png",
+                        DateTime.Parse("2026-03-01T18:00:00Z"),
+                        DateTime.Parse("2026-03-01T18:00:00Z"))
+                ]));
+
+        public Task<OrganizationSummary?> GetPublicOrganizationBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+            Task.FromResult<OrganizationSummary?>(
+                string.Equals(slug, "stellar-forge", StringComparison.OrdinalIgnoreCase)
+                    ? new OrganizationSummary(
+                        Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                        "stellar-forge",
+                        "Stellar Forge",
+                        "Family co-op studio.",
+                        "https://cdn.example.com/orgs/stellar-forge.png",
+                        DateTime.Parse("2026-03-01T18:00:00Z"),
+                        DateTime.Parse("2026-03-01T18:00:00Z"))
+                    : null);
 
         public Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<CurrentUserResponse?>(data.CurrentUser);

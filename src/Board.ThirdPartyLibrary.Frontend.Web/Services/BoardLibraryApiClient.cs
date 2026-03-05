@@ -30,6 +30,16 @@ public interface IBoardLibraryApiClient
     Task<CatalogTitle?> GetCatalogTitleAsync(string organizationSlug, string titleSlug, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lists public organizations.
+    /// </summary>
+    Task<OrganizationListResponse> GetPublicOrganizationsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a public organization by slug.
+    /// </summary>
+    Task<OrganizationSummary?> GetPublicOrganizationBySlugAsync(string slug, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the current authenticated user profile.
     /// </summary>
     Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
@@ -328,6 +338,27 @@ internal sealed class BoardLibraryApiClient(
 
         return await SendOptionalAsync<CatalogTitleResponse>(httpRequest, cancellationToken) is { } response
             ? response.Title
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<OrganizationListResponse> GetPublicOrganizationsAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/organizations", requiresAuthentication: false);
+        return await SendAsync<OrganizationListResponse>(httpRequest, cancellationToken)
+            ?? new OrganizationListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<OrganizationSummary?> GetPublicOrganizationBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/organizations/{Uri.EscapeDataString(slug)}",
+            requiresAuthentication: false);
+
+        return await SendOptionalAsync<OrganizationResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Organization
             : null;
     }
 
@@ -1830,6 +1861,12 @@ public sealed record UpdateOrganizationRequest(
 /// </summary>
 /// <param name="Organization">Organization details.</param>
 public sealed record OrganizationResponse(OrganizationSummary Organization);
+
+/// <summary>
+/// Public organization list response wrapper.
+/// </summary>
+/// <param name="Organizations">Returned organizations.</param>
+public sealed record OrganizationListResponse(IReadOnlyList<OrganizationSummary> Organizations);
 
 /// <summary>
 /// Public organization details.

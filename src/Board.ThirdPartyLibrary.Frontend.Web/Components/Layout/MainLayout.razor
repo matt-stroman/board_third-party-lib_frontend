@@ -78,15 +78,8 @@
                                     {
                                         <div class="border-t border-white/10"></div>
                                         <nav class="p-2 text-sm text-slate-200">
-                                            @if (ShouldShowRequestsLink)
-                                            {
-                                                <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/account/developer-access" @onclick="CloseUserMenu">Developer Access</a>
-                                            }
-                                            @if (IsDeveloperRole)
-                                            {
-                                                <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/develop" @onclick="CloseUserMenu">Organizations</a>
-                                                <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="@DeveloperGamesHref" @onclick="CloseUserMenu">Games</a>
-                                            }
+                                            <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="/develop" @onclick="CloseUserMenu">Organizations</a>
+                                            <a class="block rounded-xl px-3 py-2 transition hover:bg-white/10" href="@DeveloperGamesHref" @onclick="CloseUserMenu">Games</a>
                                         </nav>
                                     }
 
@@ -208,11 +201,9 @@
         }
     }
 
-    private bool IsDeveloperRole => CurrentUser.IsDeveloper();
+    private bool IsDeveloperRole => EnrollmentState.HasDeveloperAccess() || CurrentUser.IsDeveloper();
 
-    private bool ShouldShowRequestsLink => true;
-
-    private bool ShowDeveloperSection => ShouldShowRequestsLink || IsDeveloperRole;
+    private bool ShowDeveloperSection => IsDeveloperRole;
 
     private string DeveloperGamesHref =>
         ActiveOrganization is null

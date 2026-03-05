@@ -46,8 +46,8 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [InlineData("/account", "Player library access")]
     [InlineData("/account/profile", "Public profile")]
     [InlineData("/account/settings", "Account Settings")]
-    [InlineData("/account/developer-access", "Developer Access")]
     [InlineData("/signin?error=identity-provider-unavailable", "Sign in is unavailable right now")]
+    [InlineData("/signin?error=identity-provider-session-expired", "Sign-in session expired")]
     public async Task Route_ReturnsSuccessfulResponse_WithExpectedMarker(string route, string expectedContent)
     {
         var response = await client.GetAsync(route);
@@ -84,34 +84,16 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Become a Developer", content);
         Assert.DoesNotContain("Managed organizations", content);
+        Assert.DoesNotContain("Current status", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Step 1", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task DeveloperAccessRoute_WithPlayerOnlyAccount_ShowsEnrollmentAction()
+    public async Task LegacyDeveloperAccessRoute_ReturnsNotFoundPage()
     {
-        using var factory = new TestWebApplicationFactory(
-            new TestApiData(
-                CurrentUser: new CurrentUserResponse(
-                    "user-456",
-                    "Player One",
-                    "player@boardtpl.local",
-                    true,
-                    null,
-                    ["player"]),
-                ManagedOrganizations: new DeveloperOrganizationListResponse([])));
+        var response = await client.GetAsync("/account/developer-access");
 
-        using var playerClient = factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            BaseAddress = new Uri("https://localhost")
-        });
-
-        var response = await playerClient.GetAsync("/account/developer-access");
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Become a Developer", content);
-        Assert.Contains("self-service", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

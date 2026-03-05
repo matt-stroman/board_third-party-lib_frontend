@@ -83,6 +83,26 @@ builder.Services.AddAuthentication(options =>
 
                 return Task.CompletedTask;
             },
+            OnRemoteFailure = context =>
+            {
+                context.HandleResponse();
+
+                var requestedReturnUrl = context.Properties?.RedirectUri;
+                var sanitizedReturnUrl = string.IsNullOrWhiteSpace(requestedReturnUrl) || !requestedReturnUrl.StartsWith("/", StringComparison.Ordinal)
+                    ? "/player/games"
+                    : requestedReturnUrl;
+
+                var isCorrelationFailure =
+                    context.Failure?.Message?.Contains("Correlation failed", StringComparison.OrdinalIgnoreCase) == true ||
+                    context.Failure?.InnerException?.Message?.Contains("Correlation failed", StringComparison.OrdinalIgnoreCase) == true;
+
+                var target = isCorrelationFailure
+                    ? BuildSignInSessionExpiredUrl(sanitizedReturnUrl)
+                    : BuildSignInFailedUrl(sanitizedReturnUrl);
+
+                context.Response.Redirect(target);
+                return Task.CompletedTask;
+            },
             OnRedirectToIdentityProviderForSignOut = async context =>
             {
                 context.ProtocolMessage.ClientId = context.Options.ClientId;
@@ -130,6 +150,9 @@ static string SanitizeReturnUrl(string? returnUrl)
 
 static string BuildSignInUnavailableUrl(string returnUrl) =>
     $"/signin?error=identity-provider-unavailable&returnUrl={Uri.EscapeDataString(returnUrl)}";
+
+static string BuildSignInSessionExpiredUrl(string returnUrl) =>
+    $"/signin?error=identity-provider-session-expired&returnUrl={Uri.EscapeDataString(returnUrl)}";
 
 static string BuildSignInFailedUrl(string returnUrl) =>
     $"/signin?error=identity-provider-auth-failed&returnUrl={Uri.EscapeDataString(returnUrl)}";

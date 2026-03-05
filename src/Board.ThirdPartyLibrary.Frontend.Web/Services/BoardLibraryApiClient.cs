@@ -29,6 +29,31 @@ public interface IBoardLibraryApiClient
     Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets application-managed profile details for the current authenticated user.
+    /// </summary>
+    Task<UserProfile?> GetCurrentUserProfileAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates application-managed profile details for the current authenticated user.
+    /// </summary>
+    Task<UserProfileResponse> UpdateCurrentUserProfileAsync(UpdateUserProfileRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets a hosted avatar URL for the current authenticated user.
+    /// </summary>
+    Task<UserProfileResponse> SetCurrentUserAvatarUrlAsync(string avatarUrl, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Uploads an avatar image for the current authenticated user.
+    /// </summary>
+    Task<UserProfileResponse> UploadCurrentUserAvatarAsync(ApiUploadFile avatarFile, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes any configured avatar for the current authenticated user.
+    /// </summary>
+    Task<UserProfileResponse> RemoveCurrentUserAvatarAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the linked Board profile for the current user when one exists.
     /// </summary>
     Task<BoardProfile?> GetBoardProfileAsync(CancellationToken cancellationToken = default);
@@ -109,9 +134,144 @@ public interface IBoardLibraryApiClient
     Task<DeveloperOrganizationListResponse> GetManagedOrganizationsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates a new organization for the current developer.
+    /// </summary>
+    Task<OrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an organization the caller can manage.
+    /// </summary>
+    Task<OrganizationResponse> UpdateOrganizationAsync(Guid organizationId, UpdateOrganizationRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Lists titles for an organization the caller can manage.
     /// </summary>
     Task<DeveloperTitleListResponse> GetOrganizationTitlesAsync(Guid organizationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a new title within the selected organization.
+    /// </summary>
+    Task<DeveloperTitleResponse> CreateTitleAsync(Guid organizationId, CreateDeveloperTitleRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a developer-visible title by identifier.
+    /// </summary>
+    Task<DeveloperTitle?> GetDeveloperTitleAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates stable title fields.
+    /// </summary>
+    Task<DeveloperTitleResponse> UpdateTitleAsync(Guid titleId, UpdateDeveloperTitleRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the current metadata revision for a title.
+    /// </summary>
+    Task<DeveloperTitleResponse> UpsertTitleMetadataAsync(Guid titleId, UpsertTitleMetadataRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists metadata revisions for a title.
+    /// </summary>
+    Task<TitleMetadataVersionListResponse> GetTitleMetadataVersionsAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Activates a metadata revision for a title.
+    /// </summary>
+    Task<DeveloperTitleResponse> ActivateTitleMetadataVersionAsync(Guid titleId, int revisionNumber, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists media assets for a title.
+    /// </summary>
+    Task<TitleMediaAssetListResponse> GetTitleMediaAssetsAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Upserts a title media asset using a source URL.
+    /// </summary>
+    Task<TitleMediaAssetResponse> UpsertTitleMediaAssetAsync(Guid titleId, string mediaRole, UpsertTitleMediaAssetRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Uploads a title media asset image file.
+    /// </summary>
+    Task<TitleMediaAssetResponse> UploadTitleMediaAssetAsync(Guid titleId, string mediaRole, ApiUploadFile mediaFile, string? altText, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a title media asset for the selected role.
+    /// </summary>
+    Task DeleteTitleMediaAssetAsync(Guid titleId, string mediaRole, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists releases for a title.
+    /// </summary>
+    Task<TitleReleaseListResponse> GetTitleReleasesAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a draft release for a title.
+    /// </summary>
+    Task<TitleReleaseResponse> CreateTitleReleaseAsync(Guid titleId, UpsertTitleReleaseRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates a draft release.
+    /// </summary>
+    Task<TitleReleaseResponse> UpdateTitleReleaseAsync(Guid titleId, Guid releaseId, UpsertTitleReleaseRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Publishes a draft release.
+    /// </summary>
+    Task<TitleReleaseResponse> PublishTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Activates a published release as current.
+    /// </summary>
+    Task<DeveloperTitleResponse> ActivateTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Withdraws a published release.
+    /// </summary>
+    Task<TitleReleaseResponse> WithdrawTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists artifacts for a title release.
+    /// </summary>
+    Task<ReleaseArtifactListResponse> GetReleaseArtifactsAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a release artifact.
+    /// </summary>
+    Task<ReleaseArtifactResponse> CreateReleaseArtifactAsync(Guid titleId, Guid releaseId, UpsertReleaseArtifactRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a release artifact.
+    /// </summary>
+    Task DeleteReleaseArtifactAsync(Guid titleId, Guid releaseId, Guid artifactId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists organization integration connections.
+    /// </summary>
+    Task<IntegrationConnectionListResponse> GetOrganizationIntegrationConnectionsAsync(Guid organizationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates an organization integration connection.
+    /// </summary>
+    Task<IntegrationConnectionResponse> CreateOrganizationIntegrationConnectionAsync(Guid organizationId, UpsertIntegrationConnectionRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists acquisition bindings for a title.
+    /// </summary>
+    Task<TitleIntegrationBindingListResponse> GetTitleIntegrationBindingsAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates an acquisition binding for a title.
+    /// </summary>
+    Task<TitleIntegrationBindingResponse> CreateTitleIntegrationBindingAsync(Guid titleId, UpsertTitleIntegrationBindingRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an acquisition binding for a title.
+    /// </summary>
+    Task<TitleIntegrationBindingResponse> UpdateTitleIntegrationBindingAsync(Guid titleId, Guid bindingId, UpsertTitleIntegrationBindingRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes an acquisition binding for a title.
+    /// </summary>
+    Task DeleteTitleIntegrationBindingAsync(Guid titleId, Guid bindingId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -164,6 +324,63 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(HttpMethod.Get, "/identity/me", requiresAuthentication: true);
         return await SendOptionalAsync<CurrentUserResponse>(httpRequest, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfile?> GetCurrentUserProfileAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/identity/me/profile", requiresAuthentication: true);
+        return await SendOptionalAsync<UserProfileResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Profile
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileResponse> UpdateCurrentUserProfileAsync(UpdateUserProfileRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Put, "/identity/me/profile", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<UserProfileResponse>(httpRequest, cancellationToken)
+            ?? new UserProfileResponse(new UserProfile(string.Empty, null, null, null, null, null, false, null, null, "U", DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileResponse> SetCurrentUserAvatarUrlAsync(string avatarUrl, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Put, "/identity/me/profile/avatar-url", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(new SetAvatarUrlRequest(avatarUrl));
+        return await SendAsync<UserProfileResponse>(httpRequest, cancellationToken)
+            ?? new UserProfileResponse(new UserProfile(string.Empty, null, null, null, null, null, false, null, null, "U", DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileResponse> UploadCurrentUserAvatarAsync(ApiUploadFile avatarFile, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/identity/me/profile/avatar-upload")
+        {
+            Version = HttpVersion.Version20,
+            VersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+        };
+        httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var content = new MultipartFormDataContent();
+        var avatarContent = new ByteArrayContent(avatarFile.Content);
+        avatarContent.Headers.ContentType = new MediaTypeHeaderValue(avatarFile.ContentType);
+        content.Add(avatarContent, "Avatar", avatarFile.FileName);
+        httpRequest.Content = content;
+
+        await AttachAuthorizationAsync(httpRequest);
+
+        return await SendAsync<UserProfileResponse>(httpRequest, cancellationToken)
+            ?? new UserProfileResponse(new UserProfile(string.Empty, null, null, null, null, null, false, null, null, "U", DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileResponse> RemoveCurrentUserAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Delete, "/identity/me/profile/avatar", requiresAuthentication: true);
+        return await SendAsync<UserProfileResponse>(httpRequest, cancellationToken)
+            ?? new UserProfileResponse(new UserProfile(string.Empty, null, null, null, null, null, false, null, null, "U", DateTime.UtcNow));
     }
 
     /// <inheritdoc />
@@ -376,6 +593,44 @@ internal sealed class BoardLibraryApiClient(
     }
 
     /// <inheritdoc />
+    public async Task<OrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, "/organizations", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<OrganizationResponse>(httpRequest, cancellationToken)
+            ?? new OrganizationResponse(
+                new OrganizationSummary(
+                    Guid.Empty,
+                    request.Slug,
+                    request.DisplayName,
+                    request.Description,
+                    request.LogoUrl,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<OrganizationResponse> UpdateOrganizationAsync(Guid organizationId, UpdateOrganizationRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/organizations/{organizationId:D}",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<OrganizationResponse>(httpRequest, cancellationToken)
+            ?? new OrganizationResponse(
+                new OrganizationSummary(
+                    organizationId,
+                    request.Slug,
+                    request.DisplayName,
+                    request.Description,
+                    request.LogoUrl,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
     public async Task<DeveloperTitleListResponse> GetOrganizationTitlesAsync(Guid organizationId, CancellationToken cancellationToken = default)
     {
         using var httpRequest = CreateRequest(
@@ -385,6 +640,340 @@ internal sealed class BoardLibraryApiClient(
 
         return await SendAsync<DeveloperTitleListResponse>(httpRequest, cancellationToken)
             ?? new DeveloperTitleListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitleResponse> CreateTitleAsync(Guid organizationId, CreateDeveloperTitleRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/organizations/{organizationId:D}/titles",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<DeveloperTitleResponse>(httpRequest, cancellationToken)
+            ?? new DeveloperTitleResponse(CreateFallbackDeveloperTitle(Guid.Empty));
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitle?> GetDeveloperTitleAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}",
+            requiresAuthentication: true);
+
+        return await SendOptionalAsync<DeveloperTitleResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Title
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitleResponse> UpdateTitleAsync(Guid titleId, UpdateDeveloperTitleRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/titles/{titleId:D}",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<DeveloperTitleResponse>(httpRequest, cancellationToken)
+            ?? new DeveloperTitleResponse(CreateFallbackDeveloperTitle(titleId));
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitleResponse> UpsertTitleMetadataAsync(Guid titleId, UpsertTitleMetadataRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/titles/{titleId:D}/metadata/current",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<DeveloperTitleResponse>(httpRequest, cancellationToken)
+            ?? new DeveloperTitleResponse(CreateFallbackDeveloperTitle(titleId));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleMetadataVersionListResponse> GetTitleMetadataVersionsAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}/metadata-versions",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleMetadataVersionListResponse>(httpRequest, cancellationToken)
+            ?? new TitleMetadataVersionListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitleResponse> ActivateTitleMetadataVersionAsync(Guid titleId, int revisionNumber, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/metadata-versions/{revisionNumber}/activate",
+            requiresAuthentication: true);
+
+        return await SendAsync<DeveloperTitleResponse>(httpRequest, cancellationToken)
+            ?? new DeveloperTitleResponse(CreateFallbackDeveloperTitle(titleId));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleMediaAssetListResponse> GetTitleMediaAssetsAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}/media",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleMediaAssetListResponse>(httpRequest, cancellationToken)
+            ?? new TitleMediaAssetListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleMediaAssetResponse> UpsertTitleMediaAssetAsync(Guid titleId, string mediaRole, UpsertTitleMediaAssetRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/titles/{titleId:D}/media/{Uri.EscapeDataString(mediaRole)}",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleMediaAssetResponse>(httpRequest, cancellationToken)
+            ?? new TitleMediaAssetResponse(new TitleMediaAsset(Guid.Empty, mediaRole, request.SourceUrl, request.AltText, request.MimeType, request.Width, request.Height, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleMediaAssetResponse> UploadTitleMediaAssetAsync(Guid titleId, string mediaRole, ApiUploadFile mediaFile, string? altText, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"/developer/titles/{titleId:D}/media/{Uri.EscapeDataString(mediaRole)}/upload")
+        {
+            Version = HttpVersion.Version20,
+            VersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+        };
+        httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var content = new MultipartFormDataContent();
+        var mediaContent = new ByteArrayContent(mediaFile.Content);
+        mediaContent.Headers.ContentType = new MediaTypeHeaderValue(mediaFile.ContentType);
+        content.Add(mediaContent, "media", mediaFile.FileName);
+
+        if (!string.IsNullOrWhiteSpace(altText))
+        {
+            content.Add(new StringContent(altText.Trim()), "altText");
+        }
+
+        httpRequest.Content = content;
+        await AttachAuthorizationAsync(httpRequest);
+
+        return await SendAsync<TitleMediaAssetResponse>(httpRequest, cancellationToken)
+            ?? new TitleMediaAssetResponse(new TitleMediaAsset(Guid.Empty, mediaRole, string.Empty, altText, mediaFile.ContentType, null, null, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteTitleMediaAssetAsync(Guid titleId, string mediaRole, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Delete,
+            $"/developer/titles/{titleId:D}/media/{Uri.EscapeDataString(mediaRole)}",
+            requiresAuthentication: true);
+
+        await SendNoContentAsync(httpRequest, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReleaseListResponse> GetTitleReleasesAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}/releases",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleReleaseListResponse>(httpRequest, cancellationToken)
+            ?? new TitleReleaseListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReleaseResponse> CreateTitleReleaseAsync(Guid titleId, UpsertTitleReleaseRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/releases",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReleaseResponse>(httpRequest, cancellationToken)
+            ?? new TitleReleaseResponse(new TitleRelease(Guid.Empty, request.Version, "draft", request.MetadataRevisionNumber, false, null, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReleaseResponse> UpdateTitleReleaseAsync(Guid titleId, Guid releaseId, UpsertTitleReleaseRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReleaseResponse>(httpRequest, cancellationToken)
+            ?? new TitleReleaseResponse(new TitleRelease(releaseId, request.Version, "draft", request.MetadataRevisionNumber, false, null, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReleaseResponse> PublishTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/publish",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleReleaseResponse>(httpRequest, cancellationToken)
+            ?? new TitleReleaseResponse(new TitleRelease(releaseId, string.Empty, "published", 1, false, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<DeveloperTitleResponse> ActivateTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/activate",
+            requiresAuthentication: true);
+
+        return await SendAsync<DeveloperTitleResponse>(httpRequest, cancellationToken)
+            ?? new DeveloperTitleResponse(CreateFallbackDeveloperTitle(titleId));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReleaseResponse> WithdrawTitleReleaseAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/withdraw",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleReleaseResponse>(httpRequest, cancellationToken)
+            ?? new TitleReleaseResponse(new TitleRelease(releaseId, string.Empty, "withdrawn", 1, false, null, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<ReleaseArtifactListResponse> GetReleaseArtifactsAsync(Guid titleId, Guid releaseId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/artifacts",
+            requiresAuthentication: true);
+
+        return await SendAsync<ReleaseArtifactListResponse>(httpRequest, cancellationToken)
+            ?? new ReleaseArtifactListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ReleaseArtifactResponse> CreateReleaseArtifactAsync(Guid titleId, Guid releaseId, UpsertReleaseArtifactRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/artifacts",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<ReleaseArtifactResponse>(httpRequest, cancellationToken)
+            ?? new ReleaseArtifactResponse(new ReleaseArtifact(Guid.Empty, request.ArtifactKind, request.PackageName, request.VersionCode, request.Sha256, request.FileSizeBytes, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteReleaseArtifactAsync(Guid titleId, Guid releaseId, Guid artifactId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Delete,
+            $"/developer/titles/{titleId:D}/releases/{releaseId:D}/artifacts/{artifactId:D}",
+            requiresAuthentication: true);
+
+        await SendNoContentAsync(httpRequest, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IntegrationConnectionListResponse> GetOrganizationIntegrationConnectionsAsync(Guid organizationId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/organizations/{organizationId:D}/integration-connections",
+            requiresAuthentication: true);
+
+        return await SendAsync<IntegrationConnectionListResponse>(httpRequest, cancellationToken)
+            ?? new IntegrationConnectionListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<IntegrationConnectionResponse> CreateOrganizationIntegrationConnectionAsync(Guid organizationId, UpsertIntegrationConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/organizations/{organizationId:D}/integration-connections",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<IntegrationConnectionResponse>(httpRequest, cancellationToken)
+            ?? new IntegrationConnectionResponse(
+                new IntegrationConnection(
+                    Guid.Empty,
+                    organizationId,
+                    request.SupportedPublisherId,
+                    null,
+                    request.CustomPublisherDisplayName,
+                    request.CustomPublisherHomepageUrl,
+                    request.Configuration,
+                    request.IsEnabled,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleIntegrationBindingListResponse> GetTitleIntegrationBindingsAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Get,
+            $"/developer/titles/{titleId:D}/integration-bindings",
+            requiresAuthentication: true);
+
+        return await SendAsync<TitleIntegrationBindingListResponse>(httpRequest, cancellationToken)
+            ?? new TitleIntegrationBindingListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleIntegrationBindingResponse> CreateTitleIntegrationBindingAsync(Guid titleId, UpsertTitleIntegrationBindingRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Post,
+            $"/developer/titles/{titleId:D}/integration-bindings",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleIntegrationBindingResponse>(httpRequest, cancellationToken)
+            ?? new TitleIntegrationBindingResponse(CreateFallbackTitleIntegrationBinding(titleId, request));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleIntegrationBindingResponse> UpdateTitleIntegrationBindingAsync(Guid titleId, Guid bindingId, UpsertTitleIntegrationBindingRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/developer/titles/{titleId:D}/integration-bindings/{bindingId:D}",
+            requiresAuthentication: true);
+
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleIntegrationBindingResponse>(httpRequest, cancellationToken)
+            ?? new TitleIntegrationBindingResponse(CreateFallbackTitleIntegrationBinding(titleId, request) with { Id = bindingId });
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteTitleIntegrationBindingAsync(Guid titleId, Guid bindingId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(
+            HttpMethod.Delete,
+            $"/developer/titles/{titleId:D}/integration-bindings/{bindingId:D}",
+            requiresAuthentication: true);
+
+        await SendNoContentAsync(httpRequest, cancellationToken);
     }
 
     private HttpRequestMessage CreateRequest(HttpMethod method, string relativeUri, bool requiresAuthentication)
@@ -488,6 +1077,66 @@ internal sealed class BoardLibraryApiClient(
 
         return new ApiFileDownload(fileName, contentType, content);
     }
+
+    private async Task SendNoContentAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    private static DeveloperTitle CreateFallbackDeveloperTitle(Guid titleId) =>
+        new(
+            titleId,
+            Guid.Empty,
+            string.Empty,
+            string.Empty,
+            "game",
+            "draft",
+            "private",
+            1,
+            string.Empty,
+            string.Empty,
+            null,
+            string.Empty,
+            1,
+            1,
+            "1 player",
+            "ESRB",
+            "E",
+            0,
+            "ESRB E",
+            null,
+            null,
+            [],
+            null,
+            null,
+            null,
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+    private static TitleIntegrationBinding CreateFallbackTitleIntegrationBinding(Guid titleId, UpsertTitleIntegrationBindingRequest request) =>
+        new(
+            Guid.Empty,
+            titleId,
+            request.IntegrationConnectionId,
+            new IntegrationConnection(
+                request.IntegrationConnectionId,
+                Guid.Empty,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                DateTime.UtcNow,
+                DateTime.UtcNow),
+            request.AcquisitionUrl,
+            request.AcquisitionLabel,
+            request.Configuration,
+            request.IsPrimary,
+            request.IsEnabled,
+            DateTime.UtcNow,
+            DateTime.UtcNow);
 
     private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
@@ -726,6 +1375,51 @@ public sealed record CurrentUserResponse(
     IReadOnlyList<string> Roles);
 
 /// <summary>
+/// Application-managed profile details for the current authenticated user.
+/// </summary>
+/// <param name="Subject">Stable user subject identifier.</param>
+/// <param name="DisplayName">Application-managed display name.</param>
+/// <param name="UserName">Username sourced from Keycloak claims.</param>
+/// <param name="FirstName">First name sourced from Keycloak claims.</param>
+/// <param name="LastName">Last name sourced from Keycloak claims.</param>
+/// <param name="Email">Cached identity email address.</param>
+/// <param name="EmailVerified">Cached identity email verification flag.</param>
+/// <param name="AvatarUrl">Hosted avatar URL when configured.</param>
+/// <param name="AvatarDataUrl">Inline avatar data URL when an avatar image is uploaded directly.</param>
+/// <param name="Initials">Initials used for avatar fallback rendering.</param>
+/// <param name="UpdatedAt">UTC profile update timestamp.</param>
+public sealed record UserProfile(
+    string Subject,
+    string? DisplayName,
+    string? UserName,
+    string? FirstName,
+    string? LastName,
+    string? Email,
+    bool EmailVerified,
+    string? AvatarUrl,
+    string? AvatarDataUrl,
+    string Initials,
+    DateTime UpdatedAt);
+
+/// <summary>
+/// Response wrapper for current-user profile endpoints.
+/// </summary>
+/// <param name="Profile">Returned current user profile details.</param>
+public sealed record UserProfileResponse(UserProfile Profile);
+
+/// <summary>
+/// Request payload for updating current-user profile details.
+/// </summary>
+/// <param name="DisplayName">Application-managed display name.</param>
+public sealed record UpdateUserProfileRequest(string? DisplayName);
+
+/// <summary>
+/// Request payload for setting a hosted avatar URL.
+/// </summary>
+/// <param name="AvatarUrl">Absolute avatar URL.</param>
+public sealed record SetAvatarUrlRequest(string AvatarUrl);
+
+/// <summary>
 /// Developer-enrollment response wrapper.
 /// </summary>
 /// <param name="DeveloperEnrollment">Developer enrollment state.</param>
@@ -929,6 +1623,57 @@ public sealed record BoardProfile(
     DateTime LastSyncedAt);
 
 /// <summary>
+/// Request payload for creating an organization.
+/// </summary>
+/// <param name="Slug">Organization route key.</param>
+/// <param name="DisplayName">Organization display name.</param>
+/// <param name="Description">Optional public description.</param>
+/// <param name="LogoUrl">Optional public logo URL.</param>
+public sealed record CreateOrganizationRequest(
+    string Slug,
+    string DisplayName,
+    string? Description,
+    string? LogoUrl);
+
+/// <summary>
+/// Request payload for updating an organization.
+/// </summary>
+/// <param name="Slug">Organization route key.</param>
+/// <param name="DisplayName">Organization display name.</param>
+/// <param name="Description">Optional public description.</param>
+/// <param name="LogoUrl">Optional public logo URL.</param>
+public sealed record UpdateOrganizationRequest(
+    string Slug,
+    string DisplayName,
+    string? Description,
+    string? LogoUrl);
+
+/// <summary>
+/// Organization response wrapper.
+/// </summary>
+/// <param name="Organization">Organization details.</param>
+public sealed record OrganizationResponse(OrganizationSummary Organization);
+
+/// <summary>
+/// Public organization details.
+/// </summary>
+/// <param name="Id">Organization identifier.</param>
+/// <param name="Slug">Organization route key.</param>
+/// <param name="DisplayName">Organization display name.</param>
+/// <param name="Description">Optional public description.</param>
+/// <param name="LogoUrl">Optional public logo URL.</param>
+/// <param name="CreatedAt">UTC creation timestamp.</param>
+/// <param name="UpdatedAt">UTC update timestamp.</param>
+public sealed record OrganizationSummary(
+    Guid Id,
+    string Slug,
+    string DisplayName,
+    string? Description,
+    string? LogoUrl,
+    DateTime? CreatedAt,
+    DateTime? UpdatedAt);
+
+/// <summary>
 /// Developer-visible organization list response.
 /// </summary>
 /// <param name="Organizations">Organizations the caller can manage.</param>
@@ -956,6 +1701,264 @@ public sealed record DeveloperOrganizationSummary(
 /// </summary>
 /// <param name="Titles">Titles the caller can manage in the organization.</param>
 public sealed record DeveloperTitleListResponse(IReadOnlyList<CatalogTitleSummary> Titles);
+
+/// <summary>
+/// Request payload for creating a title.
+/// </summary>
+public sealed record CreateDeveloperTitleRequest(
+    string Slug,
+    string ContentKind,
+    string LifecycleStatus,
+    string Visibility,
+    UpsertTitleMetadataRequest Metadata);
+
+/// <summary>
+/// Request payload for updating stable title fields.
+/// </summary>
+public sealed record UpdateDeveloperTitleRequest(
+    string Slug,
+    string ContentKind,
+    string LifecycleStatus,
+    string Visibility);
+
+/// <summary>
+/// Request payload for creating or updating current metadata.
+/// </summary>
+public sealed record UpsertTitleMetadataRequest(
+    string DisplayName,
+    string ShortDescription,
+    string Description,
+    string GenreDisplay,
+    int MinPlayers,
+    int MaxPlayers,
+    string AgeRatingAuthority,
+    string AgeRatingValue,
+    int MinAgeYears);
+
+/// <summary>
+/// Developer title response wrapper.
+/// </summary>
+public sealed record DeveloperTitleResponse(DeveloperTitle Title);
+
+/// <summary>
+/// Developer-visible title detail.
+/// </summary>
+public sealed record DeveloperTitle(
+    Guid Id,
+    Guid OrganizationId,
+    string OrganizationSlug,
+    string Slug,
+    string ContentKind,
+    string LifecycleStatus,
+    string Visibility,
+    int CurrentMetadataRevision,
+    string DisplayName,
+    string ShortDescription,
+    string? Description,
+    string GenreDisplay,
+    int MinPlayers,
+    int MaxPlayers,
+    string PlayerCountDisplay,
+    string AgeRatingAuthority,
+    string AgeRatingValue,
+    int MinAgeYears,
+    string AgeDisplay,
+    string? CardImageUrl,
+    string? AcquisitionUrl,
+    IReadOnlyList<TitleMediaAsset> MediaAssets,
+    CurrentTitleRelease? CurrentRelease,
+    PublicTitleAcquisition? Acquisition,
+    Guid? CurrentReleaseId,
+    DateTime? CreatedAt,
+    DateTime? UpdatedAt);
+
+/// <summary>
+/// Metadata version list response wrapper.
+/// </summary>
+public sealed record TitleMetadataVersionListResponse(IReadOnlyList<TitleMetadataVersion> MetadataVersions);
+
+/// <summary>
+/// Developer-visible title metadata version.
+/// </summary>
+public sealed record TitleMetadataVersion(
+    int RevisionNumber,
+    bool IsCurrent,
+    bool IsFrozen,
+    string DisplayName,
+    string ShortDescription,
+    string Description,
+    string GenreDisplay,
+    int MinPlayers,
+    int MaxPlayers,
+    string PlayerCountDisplay,
+    string AgeRatingAuthority,
+    string AgeRatingValue,
+    int MinAgeYears,
+    string AgeDisplay,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
+/// Request payload for upserting title media.
+/// </summary>
+public sealed record UpsertTitleMediaAssetRequest(
+    string SourceUrl,
+    string? AltText,
+    string? MimeType,
+    int? Width,
+    int? Height);
+
+/// <summary>
+/// Title media asset list response wrapper.
+/// </summary>
+public sealed record TitleMediaAssetListResponse(IReadOnlyList<TitleMediaAsset> MediaAssets);
+
+/// <summary>
+/// Title media asset response wrapper.
+/// </summary>
+public sealed record TitleMediaAssetResponse(TitleMediaAsset MediaAsset);
+
+/// <summary>
+/// Request payload for creating or updating releases.
+/// </summary>
+public sealed record UpsertTitleReleaseRequest(string Version, int MetadataRevisionNumber);
+
+/// <summary>
+/// Title release list response wrapper.
+/// </summary>
+public sealed record TitleReleaseListResponse(IReadOnlyList<TitleRelease> Releases);
+
+/// <summary>
+/// Title release response wrapper.
+/// </summary>
+public sealed record TitleReleaseResponse(TitleRelease Release);
+
+/// <summary>
+/// Developer-visible title release.
+/// </summary>
+public sealed record TitleRelease(
+    Guid Id,
+    string Version,
+    string Status,
+    int MetadataRevisionNumber,
+    bool IsCurrent,
+    DateTime? PublishedAt,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
+/// Request payload for creating a release artifact.
+/// </summary>
+public sealed record UpsertReleaseArtifactRequest(
+    string ArtifactKind,
+    string PackageName,
+    long VersionCode,
+    string? Sha256,
+    long? FileSizeBytes);
+
+/// <summary>
+/// Release artifact list response wrapper.
+/// </summary>
+public sealed record ReleaseArtifactListResponse(IReadOnlyList<ReleaseArtifact> Artifacts);
+
+/// <summary>
+/// Release artifact response wrapper.
+/// </summary>
+public sealed record ReleaseArtifactResponse(ReleaseArtifact Artifact);
+
+/// <summary>
+/// Developer-visible release artifact.
+/// </summary>
+public sealed record ReleaseArtifact(
+    Guid Id,
+    string ArtifactKind,
+    string PackageName,
+    long VersionCode,
+    string? Sha256,
+    long? FileSizeBytes,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
+/// Integration connection list response wrapper.
+/// </summary>
+public sealed record IntegrationConnectionListResponse(IReadOnlyList<IntegrationConnection> IntegrationConnections);
+
+/// <summary>
+/// Integration connection response wrapper.
+/// </summary>
+public sealed record IntegrationConnectionResponse(IntegrationConnection IntegrationConnection);
+
+/// <summary>
+/// Request payload for creating or updating integration connections.
+/// </summary>
+public sealed record UpsertIntegrationConnectionRequest(
+    Guid? SupportedPublisherId,
+    string? CustomPublisherDisplayName,
+    string? CustomPublisherHomepageUrl,
+    JsonElement? Configuration,
+    bool IsEnabled);
+
+/// <summary>
+/// Developer-visible organization integration connection.
+/// </summary>
+public sealed record IntegrationConnection(
+    Guid Id,
+    Guid OrganizationId,
+    Guid? SupportedPublisherId,
+    SupportedPublisher? SupportedPublisher,
+    string? CustomPublisherDisplayName,
+    string? CustomPublisherHomepageUrl,
+    JsonElement? Configuration,
+    bool IsEnabled,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
+/// Supported publisher detail.
+/// </summary>
+public sealed record SupportedPublisher(
+    Guid Id,
+    string Key,
+    string DisplayName,
+    string HomepageUrl);
+
+/// <summary>
+/// Request payload for creating or updating title integration bindings.
+/// </summary>
+public sealed record UpsertTitleIntegrationBindingRequest(
+    Guid IntegrationConnectionId,
+    string AcquisitionUrl,
+    string? AcquisitionLabel,
+    JsonElement? Configuration,
+    bool IsPrimary,
+    bool IsEnabled);
+
+/// <summary>
+/// Title integration binding list response wrapper.
+/// </summary>
+public sealed record TitleIntegrationBindingListResponse(IReadOnlyList<TitleIntegrationBinding> IntegrationBindings);
+
+/// <summary>
+/// Title integration binding response wrapper.
+/// </summary>
+public sealed record TitleIntegrationBindingResponse(TitleIntegrationBinding IntegrationBinding);
+
+/// <summary>
+/// Title integration binding detail.
+/// </summary>
+public sealed record TitleIntegrationBinding(
+    Guid Id,
+    Guid TitleId,
+    Guid IntegrationConnectionId,
+    IntegrationConnection IntegrationConnection,
+    string AcquisitionUrl,
+    string? AcquisitionLabel,
+    JsonElement? Configuration,
+    bool IsPrimary,
+    bool IsEnabled,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
 
 /// <summary>
 /// Problem details returned by the backend API.

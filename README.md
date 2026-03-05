@@ -2,13 +2,15 @@
 
 A frontend interface for Board Third Party Library users to browse the public catalog, use authenticated player routes, and manage developer organizations and titles once developer access is enabled.
 
+Developer organization/title create and settings flows now auto-generate kebab-case slugs from display names instead of requiring manual slug entry.
+
 Planning artifacts for the web UI live in [`planning/`](planning/README.md).
 
 ## Current Structure
 
 - `Board.ThirdPartyLibrary.Frontend.slnx`: frontend solution
 - `src/Board.ThirdPartyLibrary.Frontend.Web/`: Blazor Web App
-- `tests/Board.ThirdPartyLibrary.Frontend.Web.Tests/`: route smoke tests
+- `tests/Board.ThirdPartyLibrary.Frontend.Web.Tests/`: route smoke tests plus focused UI utility/unit coverage (for example slug normalization)
 - `planning/`: frontend planning, ADRs, and wireframes
 
 ## Local Workflow
@@ -31,11 +33,13 @@ Run the web app:
 npm run start
 ```
 
+`npm run start` now uses `dotnet watch`, so Razor page and component edits hot reload while the app is running.
+
 For authenticated flows such as `/signin`, local Keycloak must be running on `https://localhost:8443`, the backend API must be available on `https://localhost:7085`, the frontend should be served locally at `https://localhost:7277`, and local registration/verification emails are captured in Mailpit at `https://localhost:8025`.
 From the repo root, the simplest setup is:
 
 ```bash
-python ./scripts/dev.py web --watch-css
+python ./scripts/dev.py web --hot-reload
 ```
 
 Run the frontend tests:

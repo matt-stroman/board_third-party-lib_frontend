@@ -10,7 +10,7 @@
     "css:watch": "tailwindcss -i ./src/Board.ThirdPartyLibrary.Frontend.Web/Styles/app.css -o ./src/Board.ThirdPartyLibrary.Frontend.Web/wwwroot/app.css --watch",
     "test": "dotnet test ./Board.ThirdPartyLibrary.Frontend.slnx",
     "build": "npm run css:build && dotnet build ./Board.ThirdPartyLibrary.Frontend.slnx",
-    "start": "dotnet run --project ./src/Board.ThirdPartyLibrary.Frontend.Web/Board.ThirdPartyLibrary.Frontend.Web.csproj"
+    "start": "dotnet watch --project ./src/Board.ThirdPartyLibrary.Frontend.Web/Board.ThirdPartyLibrary.Frontend.Web.csproj run"
   },
   "keywords": [],
   "author": "",

@@ -1,14 +1,14 @@
+@page "/player/games"
 @page "/player/library"
 @attribute [Authorize]
 @inject IBoardLibraryApiClient ApiClient
 
-<PageTitle>Player Library</PageTitle>
+<PageTitle>My Games</PageTitle>
 
 <section class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <div class="app-chip w-fit">Authenticated player space</div>
-            <h1 class="mt-4 app-page-title">Player Library</h1>
+            <h1 class="mt-4 app-page-title">My Games</h1>
             <p class="mt-4 max-w-3xl text-base leading-8 text-slate-300">
                 This is the signed-in player library. New accounts land here first, while purchased titles, favorites, and collections arrive in a later backend wave.
             </p>

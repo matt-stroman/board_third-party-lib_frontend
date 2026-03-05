@@ -1,62 +1,59 @@
 @page "/"
 
-<PageTitle>Board Third Party Library</PageTitle>
+<PageTitle>Board Enthusiasts</PageTitle>
 
-<section class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+<section class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
     <div class="space-y-6">
-        <div class="inline-flex items-center rounded-full border border-cyan-200/20 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-100/80">
-            Browser MVP for the current Wave 5 vertical slice
-        </div>
-        <div class="space-y-4">
-            <h1 class="max-w-3xl font-['Aptos_Display','Trebuchet_MS',sans-serif] text-5xl font-black uppercase leading-[0.95] tracking-[0.06em] text-white sm:text-6xl">
-                Discover Board games built beyond first party.
+        <div>
+            <h1 class="max-w-3xl font-display text-5xl font-black uppercase leading-[0.93] tracking-[0.03em] text-white sm:text-6xl">
+                Discover new games for Board
             </h1>
-            <p class="max-w-2xl text-lg leading-8 text-slate-300">
-                Browse the public catalog, keep a private player library and wishlist once signed in, and give developers a clean place to manage titles, media, releases, and external acquisition links.
+            <p class="max-w-2xl text-lg leading-8 text-[#ece3d5]">
+                Browse games created by the Board community.
             </p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row">
             <AuthorizeView>
                 <Authorized>
-                    <a class="inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-200" href="/player/library">Open player library</a>
-                    <a class="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100 transition hover:border-cyan-300/50 hover:text-cyan-100" href="/library">Browse public library</a>
+                    <a class="inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-200" href="/player/games">Open my games</a>
+                    <a class="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100 transition hover:border-cyan-300/50 hover:text-cyan-100" href="/library">Browse games</a>
                 </Authorized>
                 <NotAuthorized>
-                    <a class="inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-200" href="/library">Browse public library</a>
+                    <a class="inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-200" href="/library">Browse games</a>
                     <a class="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100 transition hover:border-cyan-300/50 hover:text-cyan-100" href="/auth/signin?returnUrl=%2Fplayer%2Flibrary" data-enhance-nav="false">Sign in for player library</a>
                 </NotAuthorized>
             </AuthorizeView>
         </div>
     </div>
 
-    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(140deg,_rgba(240,248,255,0.94),_rgba(224,250,255,0.82)_38%,_rgba(255,209,102,0.36)_100%)] p-6 text-slate-950 shadow-[0_30px_80px_rgba(3,8,18,0.42)]">
-        <div class="absolute inset-y-0 right-0 w-2/3 bg-[radial-gradient(circle_at_top,_rgba(255,0,128,0.24),_transparent_34%),radial-gradient(circle_at_bottom,_rgba(0,168,232,0.22),_transparent_42%)]"></div>
+    <div class="relative overflow-hidden rounded-[2rem] border border-[#fffef1]/40 bg-[linear-gradient(140deg,_rgba(255,251,240,0.98),_rgba(255,245,222,0.96)_38%,_rgba(220,247,234,0.92)_100%)] p-6 text-[#272831] shadow-[0_30px_80px_rgba(9,8,14,0.32)]">
+        <div class="absolute inset-y-0 right-0 w-2/3 bg-[radial-gradient(circle_at_top,_rgba(243,154,46,0.22),_transparent_34%),radial-gradient(circle_at_bottom,_rgba(77,117,244,0.18),_transparent_42%)]"></div>
         <div class="relative space-y-5">
-            <div class="inline-flex rounded-full bg-slate-950/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700">
+            <div class="inline-flex rounded-full bg-[#272831]/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#5c4b43]">
                 Featured rail direction
             </div>
             <div class="space-y-2">
-                <div class="text-xs font-bold uppercase tracking-[0.24em] text-slate-700/80">1-4 players • Arcade • Ages 10+</div>
-                <div class="font-['Aptos_Display','Trebuchet_MS',sans-serif] text-4xl font-black uppercase tracking-[0.08em]">Star Blasters</div>
-                <p class="max-w-md text-sm leading-7 text-slate-700">
-                    The first public browse surface should keep the dramatic Board-like hero and card rail on larger screens, then collapse gracefully on mobile.
+                <div class="text-xs font-bold uppercase tracking-[0.24em] text-[#6b5a50]">1-4 players • Arcade • Ages 10+</div>
+                <div class="font-display text-4xl font-black uppercase tracking-[0.04em]">Star Blasters</div>
+                <p class="max-w-md text-sm leading-7 text-[#5c4b43]">
+                    Big spotlight art, tactile color, and simple card rails keep the browse surface playful without drifting into a store-first look.
                 </p>
             </div>
             <div class="grid gap-3 sm:grid-cols-4">
-                <div class="rounded-[1.3rem] border border-white/50 bg-[linear-gradient(160deg,_#0f172a,_#1d4ed8)] p-4 text-white shadow-lg">
-                    <div class="text-xs uppercase tracking-[0.24em] text-cyan-100/80">Action</div>
+                <div class="rounded-[1.3rem] border border-white/50 bg-[linear-gradient(160deg,_#272831,_#4d75f4)] p-4 text-white shadow-lg">
+                    <div class="text-xs uppercase tracking-[0.24em] text-[#dcf7ea]">Action</div>
                     <div class="mt-10 font-semibold">Play now</div>
                 </div>
-                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#f8fafc,_#dbeafe)] p-4 text-slate-800 shadow-lg">
-                    <div class="text-xs uppercase tracking-[0.24em] text-slate-500">Rail</div>
+                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#fffef1,_#f7edd6)] p-4 text-[#272831] shadow-lg">
+                    <div class="text-xs uppercase tracking-[0.24em] text-[#6b5a50]">Rail</div>
                     <div class="mt-10 font-semibold">Card 01</div>
                 </div>
-                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#fef3c7,_#f97316)] p-4 text-slate-900 shadow-lg">
-                    <div class="text-xs uppercase tracking-[0.24em] text-slate-700">Rail</div>
+                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#ffe2b6,_#f39a2e)] p-4 text-[#272831] shadow-lg">
+                    <div class="text-xs uppercase tracking-[0.24em] text-[#6b4a2d]">Rail</div>
                     <div class="mt-10 font-semibold">Card 02</div>
                 </div>
-                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#f5d0fe,_#7c3aed)] p-4 text-white shadow-lg">
-                    <div class="text-xs uppercase tracking-[0.24em] text-fuchsia-100/80">Rail</div>
+                <div class="rounded-[1.3rem] bg-[linear-gradient(160deg,_#dff7ea,_#40c68d)] p-4 text-[#163423] shadow-lg">
+                    <div class="text-xs uppercase tracking-[0.24em] text-[#21563b]">Rail</div>
                     <div class="mt-10 font-semibold">Card 03</div>
                 </div>
             </div>
@@ -67,17 +64,17 @@
 <section class="mt-10 grid gap-6 lg:grid-cols-3">
     <a class="app-panel p-6 transition hover:-translate-y-0.5 hover:border-cyan-300/35" href="/library">
         <div class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/75">Public</div>
-        <h2 class="mt-3 font-['Aptos_Display','Trebuchet_MS',sans-serif] text-2xl font-bold text-white">Library browse</h2>
-        <p class="mt-3 text-sm leading-7 text-slate-300">Board-inspired hero spotlight, title rail, mobile-first collapse, and direct organization/title routes for anonymous or signed-in browsing.</p>
+        <h2 class="mt-3 font-display text-2xl font-bold text-white">Library browse</h2>
+        <p class="mt-3 text-sm leading-7 text-slate-300">A browse-first surface with larger type, brighter accents, and room for playful title presentation.</p>
     </a>
-    <a class="app-panel p-6 transition hover:-translate-y-0.5 hover:border-cyan-300/35" href="/player/library">
+    <a class="app-panel p-6 transition hover:-translate-y-0.5 hover:border-cyan-300/35" href="/player/games">
         <div class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/75">Players</div>
-        <h2 class="mt-3 font-['Aptos_Display','Trebuchet_MS',sans-serif] text-2xl font-bold text-white">Player library</h2>
-        <p class="mt-3 text-sm leading-7 text-slate-300">Authenticated player space for owned titles, future collections, favorites, and wishlist management.</p>
+        <h2 class="mt-3 font-display text-2xl font-bold text-white">Player library</h2>
+        <p class="mt-3 text-sm leading-7 text-slate-300">Owned titles and future collections remain clean and modular, with a warmer consumer-facing visual tone.</p>
     </a>
     <a class="app-panel p-6 transition hover:-translate-y-0.5 hover:border-cyan-300/35" href="/develop">
         <div class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100/75">Developers</div>
-        <h2 class="mt-3 font-['Aptos_Display','Trebuchet_MS',sans-serif] text-2xl font-bold text-white">Developer access</h2>
-        <p class="mt-3 text-sm leading-7 text-slate-300">Developer tools stay separate from registration, with a dedicated post-sign-in onboarding step before organization workflows unlock.</p>
+        <h2 class="mt-3 font-display text-2xl font-bold text-white">Developer access</h2>
+        <p class="mt-3 text-sm leading-7 text-slate-300">Developer workflows stay clearly separated, but now live inside the same more playful visual system as the browse experience.</p>
     </a>
 </section>

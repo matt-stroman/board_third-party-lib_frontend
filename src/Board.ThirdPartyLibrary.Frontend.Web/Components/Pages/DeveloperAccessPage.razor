@@ -92,8 +92,10 @@
                 <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Reply required</div>
                 <h2 class="mt-3 text-2xl font-semibold text-white">Send the requested information</h2>
                 <textarea class="mt-4 min-h-36 w-full rounded-[1.25rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100" @bind="ReplyMessage" placeholder="Answer the moderator's questions here."></textarea>
-                <div class="mt-4">
-                    <InputFile OnChange="HandleReplyAttachmentsAsync" multiple />
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <label class="app-file-button" for="@ReplyAttachmentInputId">Choose File...</label>
+                    <InputFile id="@ReplyAttachmentInputId" class="sr-only" OnChange="HandleReplyAttachmentsAsync" multiple />
+                    <span class="text-sm text-slate-300">@ReplyAttachmentSummary</span>
                 </div>
                 @if (ReplyAttachments.Count > 0)
                 {
@@ -148,10 +150,13 @@
 </section>
 
 @code {
+    private const string ReplyAttachmentInputId = "developer-access-reply-attachments";
+
     private CurrentUserResponse? CurrentUser { get; set; }
     private DeveloperEnrollment? EnrollmentState { get; set; }
     private DeveloperEnrollmentConversationResponse? Conversation { get; set; }
     private List<ApiUploadFile> ReplyAttachments { get; } = [];
+    private string ReplyAttachmentSummary { get; set; } = "No file chosen";
     private string? ReplyMessage { get; set; }
     private bool IsSubmitting { get; set; }
     private bool IsReplying { get; set; }
@@ -255,6 +260,7 @@
             EnrollmentState = (await ApiClient.ReplyToDeveloperEnrollmentAsync(EnrollmentState.RequestId.Value, ReplyMessage, ReplyAttachments)).DeveloperEnrollment;
             ReplyMessage = null;
             ReplyAttachments.Clear();
+            ReplyAttachmentSummary = "No file chosen";
             await LoadConversationAsync();
         }
         catch (Exception exception)
@@ -277,6 +283,13 @@
             await stream.CopyToAsync(memoryStream);
             ReplyAttachments.Add(new ApiUploadFile(file.Name, file.ContentType, memoryStream.ToArray()));
         }
+
+        ReplyAttachmentSummary = ReplyAttachments.Count switch
+        {
+            0 => "No file chosen",
+            1 => ReplyAttachments[0].FileName,
+            _ => $"{ReplyAttachments.Count} files selected"
+        };
     }
 
     private async Task LoadAsync()

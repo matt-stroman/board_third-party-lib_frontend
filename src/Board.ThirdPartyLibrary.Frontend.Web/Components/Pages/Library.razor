@@ -1,3 +1,4 @@
+@page "/games"
 @page "/library"
 @inject IBoardLibraryApiClient ApiClient
 @using Microsoft.AspNetCore.WebUtilities
@@ -7,7 +8,6 @@
 <section class="space-y-8">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div class="space-y-3">
-            <div class="app-chip">Public catalog browse</div>
             <h1 class="app-page-title">Library</h1>
             <p class="max-w-3xl text-base leading-8 text-slate-300">
                 Browse the live public catalog with a Board-inspired hero spotlight, paging metadata, and low-hit query controls backed by the current API contract.
@@ -15,7 +15,7 @@
             <AuthorizeView>
                 <Authorized>
                     <div class="flex flex-wrap gap-3">
-                        <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/player/library">Open player library</a>
+                        <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/player/games">Open my games</a>
                         <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/player/wishlist">Open wishlist</a>
                     </div>
                 </Authorized>

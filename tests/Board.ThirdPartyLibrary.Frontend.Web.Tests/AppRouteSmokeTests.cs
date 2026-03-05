@@ -90,6 +90,20 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     }
 
     [Fact]
+    public async Task DevelopRoute_WithDeveloperRole_ShowsStudiosWorkflowsInConsole()
+    {
+        var response = await client.GetAsync("/develop");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Studio Overview", content);
+        Assert.Contains("Create Studio", content);
+        Assert.Contains("Studio Settings", content);
+        Assert.Contains("Edit in console", content);
+    }
+
+    [Fact]
     public async Task ModerateRoute_WithModeratorRole_ShowsModerationWorkspace()
     {
         using var factory = new TestWebApplicationFactory(

@@ -74,7 +74,7 @@
                         {
                             <button class="@GetWorkflowButtonClass(workflow.Key)"
                                     type="button"
-                                    @onclick="() => ActiveWorkflow = workflow.Key">
+                                    @onclick="() => SelectWorkflow(workflow.Key)">
                                 @workflow.Label
                             </button>
                         }
@@ -111,23 +111,179 @@
                         <div class="h-7 w-52 animate-pulse rounded-full bg-white/10"></div>
                         <div class="mt-4 h-44 animate-pulse rounded-[1.25rem] bg-white/10"></div>
                     }
+                    else if (ActiveDomain == DevelopDomain.Studios)
+                    {
+                        @if (ActiveWorkflow == "studios-overview")
+                        {
+                            <h2 class="text-2xl font-semibold text-white">Studios</h2>
+                            <p class="mt-3 text-sm leading-7 text-slate-300">
+                                Browse managed studios and jump to settings without leaving this workspace.
+                            </p>
+
+                            @if (Organizations.Count == 0)
+                            {
+                                <p class="mt-6 text-sm text-slate-300">No managed studios yet.</p>
+                            }
+                            else
+                            {
+                                <div class="mt-6 grid gap-3 lg:grid-cols-2">
+                                    @foreach (var organization in Organizations)
+                                    {
+                                        <section class="rounded-[1.1rem] border border-white/10 bg-black/15 p-4">
+                                            <div class="text-xs uppercase tracking-[0.2em] text-cyan-100/70">@FormatMembershipRole(organization.Role)</div>
+                                            <div class="mt-2 text-lg font-semibold text-white">@organization.DisplayName</div>
+                                            <div class="mt-2 text-sm text-cyan-100/70">@organization.Slug</div>
+                                            @if (!string.IsNullOrWhiteSpace(organization.Description))
+                                            {
+                                                <p class="mt-2 text-sm text-slate-300">@organization.Description</p>
+                                            }
+                                            <div class="mt-4 flex flex-wrap gap-3 text-sm">
+                                                <button class="text-cyan-200 transition hover:text-cyan-100"
+                                                        type="button"
+                                                        @onclick="() => SelectStudioForSettings(organization.Id)">
+                                                    Edit in console
+                                                </button>
+                                                <a class="text-cyan-200 transition hover:text-cyan-100" href="/develop/organizations/@organization.Id/settings">
+                                                    Open legacy settings page
+                                                </a>
+                                            </div>
+                                        </section>
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (ActiveWorkflow == "studios-create")
+                        {
+                            <h2 class="text-2xl font-semibold text-white">Create Studio</h2>
+                            <p class="mt-3 text-sm leading-7 text-slate-300">
+                                Create a managed studio in-place. The new studio becomes active immediately.
+                            </p>
+
+                            @if (!string.IsNullOrWhiteSpace(StudioStatusMessage))
+                            {
+                                <div class="@GetStudioStatusClass() mt-5 rounded-[1rem] border px-4 py-3 text-sm">
+                                    @StudioStatusMessage
+                                </div>
+                            }
+
+                            <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                                <label class="block">
+                                    <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Display Name</span>
+                                    <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                           value="@NewStudioDisplayName"
+                                           @oninput="OnNewStudioDisplayNameInput"
+                                           placeholder="Stellar Forge" />
+                                </label>
+                                <label class="block">
+                                    <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Slug</span>
+                                    <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                           value="@NewStudioSlug"
+                                           @oninput="OnNewStudioSlugInput"
+                                           placeholder="stellar-forge" />
+                                </label>
+                            </div>
+                            <label class="mt-4 block">
+                                <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Description</span>
+                                <textarea class="mt-2 min-h-28 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                          value="@NewStudioDescription"
+                                          @oninput="OnNewStudioDescriptionInput"
+                                          placeholder="Family co-op studio focused on couch multiplayer."></textarea>
+                            </label>
+                            <label class="mt-4 block">
+                                <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Logo URL</span>
+                                <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                       value="@NewStudioLogoUrl"
+                                       @oninput="OnNewStudioLogoUrlInput"
+                                       placeholder="https://cdn.example.com/organizations/stellar-forge.png" />
+                            </label>
+                            <div class="mt-6">
+                                <button class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                                        type="button"
+                                        @onclick="CreateStudioAsync"
+                                        disabled="@IsCreateStudioDisabled">
+                                    @(IsStudioMutationInFlight ? "Creating..." : "Create Studio")
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <h2 class="text-2xl font-semibold text-white">Studio Settings</h2>
+                            @if (ActiveOrganization is null)
+                            {
+                                <p class="mt-3 text-sm text-slate-300">Select a studio context first, or create a new studio.</p>
+                            }
+                            else
+                            {
+                                <p class="mt-3 text-sm leading-7 text-slate-300">
+                                    Active studio:
+                                    <strong class="text-white">@ActiveOrganization.DisplayName</strong>
+                                </p>
+
+                                @if (!string.IsNullOrWhiteSpace(StudioStatusMessage))
+                                {
+                                    <div class="@GetStudioStatusClass() mt-5 rounded-[1rem] border px-4 py-3 text-sm">
+                                        @StudioStatusMessage
+                                    </div>
+                                }
+
+                                <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                                    <label class="block">
+                                        <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Display Name</span>
+                                        <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                               value="@StudioSettingsDisplayName"
+                                               @oninput="OnStudioSettingsDisplayNameInput" />
+                                    </label>
+                                    <label class="block">
+                                        <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Slug</span>
+                                        <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                               value="@StudioSettingsSlug"
+                                               @oninput="OnStudioSettingsSlugInput" />
+                                    </label>
+                                </div>
+                                <label class="mt-4 block">
+                                    <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Description</span>
+                                    <textarea class="mt-2 min-h-28 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                              value="@StudioSettingsDescription"
+                                              @oninput="OnStudioSettingsDescriptionInput"></textarea>
+                                </label>
+                                <label class="mt-4 block">
+                                    <span class="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Logo URL</span>
+                                    <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                           value="@StudioSettingsLogoUrl"
+                                           @oninput="OnStudioSettingsLogoUrlInput"
+                                           placeholder="https://cdn.example.com/organizations/stellar-forge.png" />
+                                </label>
+
+                                <div class="mt-6 flex flex-wrap gap-3">
+                                    <button class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                                            type="button"
+                                            @onclick="SaveStudioSettingsAsync"
+                                            disabled="@IsSaveStudioDisabled">
+                                        @(IsStudioMutationInFlight ? "Saving..." : "Save Settings")
+                                    </button>
+                                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-slate-100"
+                                       href="/develop/organizations/@ActiveOrganization.Id/settings">
+                                        Open legacy settings page
+                                    </a>
+                                </div>
+                            }
+                        }
+                    }
+                    else if (ActiveDomain == DevelopDomain.Titles)
+                    {
+                        @RenderTitlesContent()
+                    }
+                    else if (ActiveDomain == DevelopDomain.Releases)
+                    {
+                        @RenderReleasesContent()
+                    }
+                    else if (ActiveDomain == DevelopDomain.Publishing)
+                    {
+                        @RenderPublishingContent()
+                    }
                     else
                     {
-                        @switch (ActiveDomain)
-                        {
-                            case DevelopDomain.Studios:
-                                @RenderStudiosContent()
-                                break;
-                            case DevelopDomain.Titles:
-                                @RenderTitlesContent()
-                                break;
-                            case DevelopDomain.Releases:
-                                @RenderReleasesContent()
-                                break;
-                            case DevelopDomain.Publishing:
-                                @RenderPublishingContent()
-                                break;
-                        }
+                        <p class="text-sm text-slate-300">Select a workflow.</p>
                     }
                 </section>
             </section>
@@ -172,9 +328,48 @@
 
     private string? ErrorMessage { get; set; }
 
+    private string? StudioStatusMessage { get; set; }
+
+    private bool StudioStatusIsError { get; set; }
+
+    private bool IsStudioMutationInFlight { get; set; }
+
+    private string NewStudioDisplayName { get; set; } = string.Empty;
+
+    private string NewStudioSlug { get; set; } = "organization";
+
+    private string NewStudioDescription { get; set; } = string.Empty;
+
+    private string NewStudioLogoUrl { get; set; } = string.Empty;
+
+    private bool IsNewStudioSlugCustomized { get; set; }
+
+    private Guid? StudioSettingsOrganizationId { get; set; }
+
+    private string StudioSettingsDisplayName { get; set; } = string.Empty;
+
+    private string StudioSettingsSlug { get; set; } = string.Empty;
+
+    private string StudioSettingsDescription { get; set; } = string.Empty;
+
+    private string StudioSettingsLogoUrl { get; set; } = string.Empty;
+
+    private bool IsStudioSettingsSlugCustomized { get; set; }
+
     private bool HasDeveloperAccess => EnrollmentState.HasDeveloperAccess();
 
     private bool CanSubmitEnrollment => EnrollmentState?.CanSubmitRequest == true;
+
+    private bool IsCreateStudioDisabled =>
+        IsStudioMutationInFlight
+        || string.IsNullOrWhiteSpace(NewStudioDisplayName)
+        || string.IsNullOrWhiteSpace(NewStudioSlug);
+
+    private bool IsSaveStudioDisabled =>
+        IsStudioMutationInFlight
+        || ActiveOrganization is null
+        || string.IsNullOrWhiteSpace(StudioSettingsDisplayName)
+        || string.IsNullOrWhiteSpace(StudioSettingsSlug);
 
     private DeveloperOrganizationSummary? ActiveOrganization =>
         ActiveOrganizationId is null
@@ -271,7 +466,19 @@
     {
         ActiveDomain = domain;
         ActiveWorkflow = GetWorkflows(domain).First().Key;
+        StudioStatusMessage = null;
         await EnsureDomainDataAsync(domain);
+    }
+
+    private void SelectWorkflow(string workflowKey)
+    {
+        ActiveWorkflow = workflowKey;
+        StudioStatusMessage = null;
+
+        if (workflowKey == "studios-settings")
+        {
+            EnsureStudioSettingsDraftInitialized();
+        }
     }
 
     private async Task RefreshActiveDomainAsync() => await EnsureDomainDataAsync(ActiveDomain, forceRefresh: true);
@@ -325,11 +532,13 @@
 
         var response = await ApiClient.GetManagedOrganizationsAsync();
         Organizations.Clear();
-        Organizations.AddRange(response.Organizations);
+        Organizations.AddRange(response.Organizations.OrderBy(candidate => candidate.DisplayName, StringComparer.OrdinalIgnoreCase));
 
         ActiveOrganizationId = ActiveOrganizationId is not null && Organizations.Any(candidate => candidate.Id == ActiveOrganizationId)
             ? ActiveOrganizationId
             : Organizations.FirstOrDefault()?.Id;
+
+        StudioSettingsOrganizationId = null;
 
         if (ActiveOrganizationId is null)
         {
@@ -414,7 +623,13 @@
 
         ActiveOrganizationId = organizationId;
         ActiveTitleId = null;
-        await EnsureDomainDataAsync(ActiveDomain, forceRefresh: true);
+        StudioSettingsOrganizationId = null;
+        await EnsureDomainDataAsync(ActiveDomain);
+
+        if (ActiveWorkflow == "studios-settings")
+        {
+            EnsureStudioSettingsDraftInitialized();
+        }
     }
 
     private async Task OnActiveTitleChanged(ChangeEventArgs args)
@@ -425,7 +640,221 @@
         }
 
         ActiveTitleId = titleId;
-        await EnsureDomainDataAsync(ActiveDomain, forceRefresh: true);
+        await EnsureDomainDataAsync(ActiveDomain);
+    }
+
+    private void SelectStudioForSettings(Guid organizationId)
+    {
+        ActiveOrganizationId = organizationId;
+        ActiveWorkflow = "studios-settings";
+        StudioSettingsOrganizationId = null;
+        StudioStatusMessage = null;
+        EnsureStudioSettingsDraftInitialized();
+    }
+
+    private void OnNewStudioDisplayNameInput(ChangeEventArgs args)
+    {
+        NewStudioDisplayName = args.Value?.ToString() ?? string.Empty;
+        if (!IsNewStudioSlugCustomized)
+        {
+            NewStudioSlug = SlugGenerator.ToKebabCase(NewStudioDisplayName, "organization");
+        }
+    }
+
+    private void OnNewStudioSlugInput(ChangeEventArgs args)
+    {
+        IsNewStudioSlugCustomized = true;
+        NewStudioSlug = SlugGenerator.ToKebabCase(args.Value?.ToString(), "organization");
+    }
+
+    private void OnNewStudioDescriptionInput(ChangeEventArgs args) => NewStudioDescription = args.Value?.ToString() ?? string.Empty;
+
+    private void OnNewStudioLogoUrlInput(ChangeEventArgs args) => NewStudioLogoUrl = args.Value?.ToString() ?? string.Empty;
+
+    private async Task CreateStudioAsync()
+    {
+        if (IsCreateStudioDisabled)
+        {
+            return;
+        }
+
+        IsStudioMutationInFlight = true;
+        StudioStatusMessage = null;
+
+        try
+        {
+            var response = await ApiClient.CreateOrganizationAsync(
+                new CreateOrganizationRequest(
+                    SlugGenerator.ToKebabCase(NewStudioSlug, "organization"),
+                    NewStudioDisplayName.Trim(),
+                    NormalizeOptionalText(NewStudioDescription),
+                    NormalizeOptionalText(NewStudioLogoUrl)));
+
+            var createdStudio = new DeveloperOrganizationSummary(
+                response.Organization.Id,
+                response.Organization.Slug,
+                response.Organization.DisplayName,
+                response.Organization.Description,
+                response.Organization.LogoUrl,
+                "owner");
+
+            UpsertManagedOrganization(createdStudio);
+            ActiveOrganizationId = createdStudio.Id;
+            ActiveTitleId = null;
+            organizationTitles.Remove(createdStudio.Id);
+            organizationConnections.Remove(createdStudio.Id);
+            StudioSettingsOrganizationId = null;
+            ActiveWorkflow = "studios-settings";
+            SetStudioStatus("Studio created. Continue in Studio Settings.", isError: false);
+            ResetNewStudioDraft();
+            EnsureStudioSettingsDraftInitialized();
+        }
+        catch (Exception exception)
+        {
+            SetStudioStatus($"Create studio failed: {exception.Message}", isError: true);
+        }
+        finally
+        {
+            IsStudioMutationInFlight = false;
+        }
+    }
+
+    private void EnsureStudioSettingsDraftInitialized()
+    {
+        if (ActiveOrganization is null || StudioSettingsOrganizationId == ActiveOrganization.Id)
+        {
+            return;
+        }
+
+        StudioSettingsOrganizationId = ActiveOrganization.Id;
+        StudioSettingsDisplayName = ActiveOrganization.DisplayName;
+        StudioSettingsSlug = ActiveOrganization.Slug;
+        StudioSettingsDescription = ActiveOrganization.Description ?? string.Empty;
+        StudioSettingsLogoUrl = ActiveOrganization.LogoUrl ?? string.Empty;
+        IsStudioSettingsSlugCustomized = false;
+    }
+
+    private void OnStudioSettingsDisplayNameInput(ChangeEventArgs args)
+    {
+        StudioSettingsDisplayName = args.Value?.ToString() ?? string.Empty;
+        if (!IsStudioSettingsSlugCustomized)
+        {
+            StudioSettingsSlug = SlugGenerator.ToKebabCase(StudioSettingsDisplayName, "organization");
+        }
+    }
+
+    private void OnStudioSettingsSlugInput(ChangeEventArgs args)
+    {
+        IsStudioSettingsSlugCustomized = true;
+        StudioSettingsSlug = SlugGenerator.ToKebabCase(args.Value?.ToString(), "organization");
+    }
+
+    private void OnStudioSettingsDescriptionInput(ChangeEventArgs args) => StudioSettingsDescription = args.Value?.ToString() ?? string.Empty;
+
+    private void OnStudioSettingsLogoUrlInput(ChangeEventArgs args) => StudioSettingsLogoUrl = args.Value?.ToString() ?? string.Empty;
+
+    private async Task SaveStudioSettingsAsync()
+    {
+        var activeOrganization = ActiveOrganization;
+        if (IsSaveStudioDisabled || activeOrganization is null)
+        {
+            return;
+        }
+
+        IsStudioMutationInFlight = true;
+        StudioStatusMessage = null;
+
+        try
+        {
+            var response = await ApiClient.UpdateOrganizationAsync(
+                activeOrganization.Id,
+                new UpdateOrganizationRequest(
+                    SlugGenerator.ToKebabCase(StudioSettingsSlug, "organization"),
+                    StudioSettingsDisplayName.Trim(),
+                    NormalizeOptionalText(StudioSettingsDescription),
+                    NormalizeOptionalText(StudioSettingsLogoUrl)));
+
+            var updatedStudio = new DeveloperOrganizationSummary(
+                response.Organization.Id,
+                response.Organization.Slug,
+                response.Organization.DisplayName,
+                response.Organization.Description,
+                response.Organization.LogoUrl,
+                activeOrganization.Role);
+
+            UpsertManagedOrganization(updatedStudio);
+            ActiveOrganizationId = updatedStudio.Id;
+            StudioSettingsOrganizationId = null;
+            EnsureStudioSettingsDraftInitialized();
+            SetStudioStatus("Studio settings saved.", isError: false);
+        }
+        catch (Exception exception)
+        {
+            SetStudioStatus($"Save studio settings failed: {exception.Message}", isError: true);
+        }
+        finally
+        {
+            IsStudioMutationInFlight = false;
+        }
+    }
+
+    private void UpsertManagedOrganization(DeveloperOrganizationSummary organization)
+    {
+        var existingIndex = Organizations.FindIndex(candidate => candidate.Id == organization.Id);
+        if (existingIndex >= 0)
+        {
+            Organizations[existingIndex] = organization;
+        }
+        else
+        {
+            Organizations.Add(organization);
+        }
+
+        Organizations.Sort((left, right) => string.Compare(left.DisplayName, right.DisplayName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ResetNewStudioDraft()
+    {
+        NewStudioDisplayName = string.Empty;
+        NewStudioSlug = "organization";
+        NewStudioDescription = string.Empty;
+        NewStudioLogoUrl = string.Empty;
+        IsNewStudioSlugCustomized = false;
+    }
+
+    private void SetStudioStatus(string message, bool isError)
+    {
+        StudioStatusMessage = message;
+        StudioStatusIsError = isError;
+    }
+
+    private string GetStudioStatusClass() =>
+        StudioStatusIsError
+            ? "border-rose-300/40 bg-rose-400/10 text-rose-100"
+            : "border-emerald-300/40 bg-emerald-400/10 text-emerald-100";
+
+    private static string? NormalizeOptionalText(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Trim();
+
+    private static string FormatMembershipRole(string role)
+    {
+        if (string.IsNullOrWhiteSpace(role))
+        {
+            return "Member";
+        }
+
+        var tokens = role.Replace("-", " ", StringComparison.Ordinal).Replace("_", " ", StringComparison.Ordinal).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (var index = 0; index < tokens.Length; index++)
+        {
+            var token = tokens[index];
+            tokens[index] = token.Length == 1
+                ? token.ToUpperInvariant()
+                : char.ToUpperInvariant(token[0]) + token[1..].ToLowerInvariant();
+        }
+
+        return string.Join(" ", tokens);
     }
 
     private bool HasActiveDomainData() =>
@@ -437,35 +866,6 @@
             DevelopDomain.Publishing => ActiveOrganizationConnections.Count > 0 || ActiveTitleBindings.Count > 0,
             _ => false
         };
-
-    private RenderFragment RenderStudiosContent() => builder =>
-    {
-        var sequence = 0;
-
-        if (ActiveWorkflow == "studios-overview")
-        {
-            builder.AddMarkupContent(sequence++, "<h2 class=\"text-2xl font-semibold text-white\">Studios</h2>");
-            builder.AddMarkupContent(sequence++, "<p class=\"mt-3 text-sm leading-7 text-slate-300\">Browse your managed studios and jump to detailed settings when needed.</p>");
-
-            if (Organizations.Count == 0)
-            {
-                builder.AddMarkupContent(sequence++, "<p class=\"mt-6 text-sm text-slate-300\">No managed studios yet.</p>");
-                return;
-            }
-
-            builder.AddMarkupContent(sequence++, "<div class=\"mt-6 grid gap-3 lg:grid-cols-2\">");
-            foreach (var organization in Organizations)
-            {
-                builder.AddMarkupContent(sequence++, $"<section class=\"rounded-[1.1rem] border border-white/10 bg-black/15 p-4\"><div class=\"text-xs uppercase tracking-[0.2em] text-cyan-100/70\">{organization.Role}</div><div class=\"mt-2 text-lg font-semibold text-white\">{organization.DisplayName}</div><p class=\"mt-2 text-sm text-slate-300\">{organization.Description}</p><a class=\"mt-4 inline-block text-sm text-cyan-200 transition hover:text-cyan-100\" href=\"/develop/organizations/{organization.Id:D}\">Open studio workspace</a></section>");
-            }
-            builder.AddMarkupContent(sequence++, "</div>");
-            return;
-        }
-
-        builder.AddMarkupContent(sequence++, "<h2 class=\"text-2xl font-semibold text-white\">Create Studio</h2>");
-        builder.AddMarkupContent(sequence++, "<p class=\"mt-3 text-sm leading-7 text-slate-300\">Use the dedicated studio form to create a new managed workspace.</p>");
-        builder.AddMarkupContent(sequence++, "<a class=\"mt-6 inline-flex rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950\" href=\"/develop/organizations/new\">Open studio creation form</a>");
-    };
 
     private RenderFragment RenderTitlesContent() => builder =>
     {
@@ -613,7 +1013,8 @@
         DevelopDomain.Studios =>
         [
             new("studios-overview", "Studio Overview"),
-            new("studios-create", "Create Studio")
+            new("studios-create", "Create Studio"),
+            new("studios-settings", "Studio Settings")
         ],
         DevelopDomain.Titles =>
         [

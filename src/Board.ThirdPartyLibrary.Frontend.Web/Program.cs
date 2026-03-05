@@ -73,6 +73,16 @@ builder.Services.AddAuthentication(options =>
 
         options.Events = new OpenIdConnectEvents
         {
+            OnRedirectToIdentityProvider = context =>
+            {
+                if (context.Properties?.Items.TryGetValue("kc_action", out var action) == true &&
+                    !string.IsNullOrWhiteSpace(action))
+                {
+                    context.ProtocolMessage.SetParameter("kc_action", action);
+                }
+
+                return Task.CompletedTask;
+            },
             OnRedirectToIdentityProviderForSignOut = async context =>
             {
                 context.ProtocolMessage.ClientId = context.Options.ClientId;
@@ -107,15 +117,16 @@ builder.Services.AddHttpClient<IBoardLibraryApiClient, BoardLibraryApiClient>(cl
     client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
 });
 builder.Services.AddScoped<INotificationCenter, NotificationCenter>();
+builder.Services.AddScoped<IUserProfileState, UserProfileState>();
 
 static string SanitizeReturnUrl(string? returnUrl)
 {
     if (string.IsNullOrWhiteSpace(returnUrl))
     {
-        return "/player/library";
+        return "/player/games";
     }
 
-    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player/library";
+    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player/games";
 }
 
 static string BuildSignInUnavailableUrl(string returnUrl) =>
@@ -208,6 +219,61 @@ app.MapGet("/auth/signout", async (
         await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Results.Redirect(sanitizedReturnUrl);
     }
+});
+app.MapGet("/auth/update-profile", async (
+    HttpContext httpContext,
+    string? returnUrl,
+    IOptions<KeycloakOptions> options,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
+{
+    var sanitizedReturnUrl = SanitizeReturnUrl(returnUrl);
+    var keycloak = options.Value;
+    var discoveryUrl = $"{keycloak.BaseUrl.TrimEnd('/')}/realms/{keycloak.Realm}/.well-known/openid-configuration";
+
+    try
+    {
+        using var httpClient = new HttpClient
+        {
+            DefaultRequestVersion = HttpVersion.Version20,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
+        };
+        using var response = await httpClient.GetAsync(discoveryUrl, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = sanitizedReturnUrl
+        };
+        properties.Items["kc_action"] = "UPDATE_PROFILE";
+
+        await httpContext.ChallengeAsync(
+            OpenIdConnectDefaults.AuthenticationScheme,
+            properties);
+
+        return Results.Empty;
+    }
+    catch (HttpRequestException ex)
+    {
+        logger.LogWarning(ex, "Frontend profile-update flow could not reach Keycloak discovery at {DiscoveryUrl}.", discoveryUrl);
+        return Results.Redirect(BuildSignInUnavailableUrl(sanitizedReturnUrl));
+    }
+    catch (TaskCanceledException ex)
+    {
+        logger.LogWarning(ex, "Frontend profile-update flow timed out while checking Keycloak discovery at {DiscoveryUrl}.", discoveryUrl);
+        return Results.Redirect(BuildSignInUnavailableUrl(sanitizedReturnUrl));
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Frontend profile-update challenge failed for Keycloak realm {Realm} and client {ClientId}.", keycloak.Realm, keycloak.ClientId);
+        return Results.Redirect(BuildSignInFailedUrl(sanitizedReturnUrl));
+    }
+});
+app.MapGet("/auth/update-email", (
+    string? returnUrl) =>
+{
+    var sanitizedReturnUrl = SanitizeReturnUrl(returnUrl);
+    return Results.Redirect($"/auth/update-profile?returnUrl={Uri.EscapeDataString(sanitizedReturnUrl)}");
 });
 app.MapGet("/downloads/developer-enrollment/{requestId:guid}/attachments/{attachmentId:guid}", async (
     Guid requestId,

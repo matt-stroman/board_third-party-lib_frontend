@@ -3,8 +3,6 @@
 <PageTitle>Sign In</PageTitle>
 
 <section class="mx-auto max-w-2xl app-panel p-8 text-center">
-    <div class="app-chip mx-auto w-fit">Auth handoff</div>
-
     @if (string.Equals(Error, "identity-provider-unavailable", StringComparison.Ordinal))
     {
         <h1 class="mt-4 app-page-title">Sign in is unavailable right now</h1>
@@ -33,7 +31,7 @@
             This is usually a local client configuration mismatch, such as an invalid redirect URI or client ID.
             If you recently pulled auth config changes, restart local dependencies so Keycloak re-imports the updated realm:
             <code class="mt-2 block">python .\scripts\dev.py web-stop --down-dependencies</code>
-            <code class="mt-2 block">python .\scripts\dev.py web --watch-css</code>
+            <code class="mt-2 block">python .\scripts\dev.py web --hot-reload</code>
         </div>
         <div class="mt-6 flex justify-center gap-3">
             <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="@SignInHref" data-enhance-nav="false">Try again</a>
@@ -60,6 +58,6 @@
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
 
-    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/library" : ReturnUrl)}";
-    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/library" : ReturnUrl)}";
+    private string SignInHref => $"/auth/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/games" : ReturnUrl)}";
+    private string RetryHref => $"/signin?returnUrl={Uri.EscapeDataString(string.IsNullOrWhiteSpace(ReturnUrl) ? "/player/games" : ReturnUrl)}";
 }

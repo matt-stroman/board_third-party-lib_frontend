@@ -127,8 +127,10 @@
                         <div class="mt-6 rounded-[1.5rem] border border-white/10 bg-black/10 p-5">
                             <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Moderator comments</div>
                             <textarea class="mt-4 min-h-32 w-full rounded-[1.25rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100" value="@GetCommentDraft(request.RequestId)" @oninput="args => SetCommentDraft(request.RequestId, args.Value?.ToString())" placeholder="Required for reject or request more information."></textarea>
-                            <div class="mt-4">
-                                <InputFile OnChange="@((InputFileChangeEventArgs args) => HandleAttachmentsAsync(request.RequestId, args))" multiple />
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <label class="app-file-button" for="@GetAttachmentInputId(request.RequestId)">Choose File...</label>
+                                <InputFile id="@GetAttachmentInputId(request.RequestId)" class="sr-only" OnChange="@((InputFileChangeEventArgs args) => HandleAttachmentsAsync(request.RequestId, args))" multiple />
+                                <span class="text-sm text-slate-300">@GetAttachmentSummary(request.RequestId)</span>
                             </div>
                             @if (AttachmentDrafts.TryGetValue(request.RequestId, out var attachments) && attachments.Count > 0)
                             {
@@ -335,6 +337,20 @@
         filterKey == SelectedFilterKey
             ? "rounded-full bg-cyan-300 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-slate-950"
             : "rounded-full border border-white/15 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100";
+
+    private static string GetAttachmentInputId(Guid requestId) => $"moderation-attachments-{requestId:D}";
+
+    private string GetAttachmentSummary(Guid requestId)
+    {
+        if (!AttachmentDrafts.TryGetValue(requestId, out var attachments) || attachments.Count == 0)
+        {
+            return "No file chosen";
+        }
+
+        return attachments.Count == 1
+            ? attachments[0].FileName
+            : $"{attachments.Count} files selected";
+    }
 
     private static bool MatchesFilter(DeveloperEnrollmentRequest request, string filterKey) =>
         filterKey switch

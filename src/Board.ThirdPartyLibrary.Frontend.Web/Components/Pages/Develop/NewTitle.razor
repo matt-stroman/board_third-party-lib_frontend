@@ -1,20 +1,239 @@
 @page "/develop/organizations/{OrganizationId:guid}/titles/new"
-@layout DeveloperLayout
+@attribute [Authorize]
+@inject IBoardLibraryApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 <PageTitle>New Title</PageTitle>
 
-<section class="app-panel max-w-5xl p-6">
-    <div class="app-chip w-fit">Create title</div>
-    <h1 class="mt-4 app-page-title">New Title</h1>
-    <div class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300">Slug<div class="mt-2 text-white">star-blasters</div></div>
-        <div class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300">Kind<div class="mt-2 text-white">game</div></div>
-        <div class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300">Lifecycle<div class="mt-2 text-white">draft</div></div>
-        <div class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300">Visibility<div class="mt-2 text-white">private</div></div>
-        <div class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 sm:col-span-2">Initial metadata<div class="mt-2 text-white">Display name, descriptions, genre, players, and age fields belong here.</div></div>
-    </div>
+<section class="space-y-6">
+    <section class="app-panel max-w-5xl p-6">
+        <h1 class="app-page-title">New Title</h1>
+        <p class="mt-4 text-base leading-8 text-slate-300">
+            Create a title and its first metadata revision. Slug is generated automatically from display name.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="mt-4 rounded-[1rem] border border-rose-300/25 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">@ErrorMessage</div>
+        }
+        else if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <div class="mt-4 rounded-[1rem] border border-cyan-300/25 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-50">@StatusMessage</div>
+        }
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <label class="text-sm text-slate-300">Display name
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="DisplayName" placeholder="Star Blasters" />
+            </label>
+            <label class="text-sm text-slate-300">Slug (auto-generated)
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/55 px-4 py-3 text-slate-300" value="@GeneratedSlug" readonly />
+            </label>
+            <label class="text-sm text-slate-300">Content kind
+                <select class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="ContentKind">
+                    <option value="game">Game</option>
+                    <option value="app">App</option>
+                </select>
+            </label>
+            <label class="text-sm text-slate-300">Lifecycle status
+                <select class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="LifecycleStatus">
+                    <option value="draft">Draft</option>
+                    <option value="testing">Testing</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </label>
+            <label class="text-sm text-slate-300">Visibility
+                <select class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="Visibility" disabled="@IsDraftLifecycle">
+                    <option value="private">Private</option>
+                    <option value="unlisted">Unlisted</option>
+                    <option value="listed">Listed</option>
+                </select>
+            </label>
+            <label class="text-sm text-slate-300">Genre
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="GenreDisplay" placeholder="Arcade Shooter" />
+            </label>
+            <label class="text-sm text-slate-300 sm:col-span-2">Short description
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="ShortDescription" />
+            </label>
+            <label class="text-sm text-slate-300 sm:col-span-2">Description
+                <textarea class="mt-2 min-h-32 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="Description"></textarea>
+            </label>
+            <label class="text-sm text-slate-300">Min players
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" type="number" min="1" @bind="MinPlayers" />
+            </label>
+            <label class="text-sm text-slate-300">Max players
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" type="number" min="@MinPlayers" @bind="MaxPlayers" />
+            </label>
+            <label class="text-sm text-slate-300">Age rating authority
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="AgeRatingAuthority" placeholder="ESRB" />
+            </label>
+            <label class="text-sm text-slate-300">Age rating value
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="AgeRatingValue" placeholder="E10+" />
+            </label>
+            <label class="text-sm text-slate-300">Minimum age (years)
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" type="number" min="0" @bind="MinAgeYears" />
+            </label>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+            <button class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 disabled:cursor-not-allowed disabled:opacity-60" type="button" @onclick="CreateTitleAsync" disabled="@IsSubmitting">
+                @(IsSubmitting ? "Creating..." : "Create title")
+            </button>
+            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop/organizations/@OrganizationId/titles">Back to titles</a>
+        </div>
+    </section>
 </section>
 
 @code {
     [Parameter] public Guid OrganizationId { get; set; }
+
+    private string? DisplayName { get; set; }
+
+    private string ContentKind { get; set; } = "game";
+
+    private string lifecycleStatus = "draft";
+
+    private string LifecycleStatus
+    {
+        get => lifecycleStatus;
+        set
+        {
+            lifecycleStatus = value;
+            if (IsDraftLifecycle)
+            {
+                Visibility = "private";
+            }
+        }
+    }
+
+    private string Visibility { get; set; } = "private";
+
+    private string? ShortDescription { get; set; }
+
+    private string? Description { get; set; }
+
+    private string? GenreDisplay { get; set; }
+
+    private int MinPlayers { get; set; } = 1;
+
+    private int MaxPlayers { get; set; } = 4;
+
+    private string? AgeRatingAuthority { get; set; } = "ESRB";
+
+    private string? AgeRatingValue { get; set; } = "E10+";
+
+    private int MinAgeYears { get; set; } = 10;
+
+    private bool IsSubmitting { get; set; }
+
+    private string? ErrorMessage { get; set; }
+
+    private string? StatusMessage { get; set; }
+
+    private bool IsDraftLifecycle => string.Equals(LifecycleStatus, "draft", StringComparison.Ordinal);
+
+    private string GeneratedSlug => SlugGenerator.ToKebabCase(DisplayName, "title");
+
+    private async Task CreateTitleAsync()
+    {
+        if (IsSubmitting)
+        {
+            return;
+        }
+
+        ErrorMessage = Validate();
+        StatusMessage = null;
+        if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            return;
+        }
+
+        IsSubmitting = true;
+        try
+        {
+            var response = await ApiClient.CreateTitleAsync(
+                OrganizationId,
+                new CreateDeveloperTitleRequest(
+                    GeneratedSlug,
+                    ContentKind,
+                    LifecycleStatus,
+                    Visibility,
+                    new UpsertTitleMetadataRequest(
+                        DisplayName!.Trim(),
+                        ShortDescription!.Trim(),
+                        Description!.Trim(),
+                        GenreDisplay!.Trim(),
+                        MinPlayers,
+                        MaxPlayers,
+                        AgeRatingAuthority!.Trim(),
+                        AgeRatingValue!.Trim(),
+                        MinAgeYears)));
+
+            StatusMessage = "Title created.";
+            NavigationManager.NavigateTo($"/develop/titles/{response.Title.Id:D}");
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private string? Validate()
+    {
+        if (string.IsNullOrWhiteSpace(DisplayName))
+        {
+            return "Display name is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(ShortDescription))
+        {
+            return "Short description is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(Description))
+        {
+            return "Description is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(GenreDisplay))
+        {
+            return "Genre is required.";
+        }
+
+        if (MinPlayers < 1)
+        {
+            return "Minimum players must be at least 1.";
+        }
+
+        if (MaxPlayers < MinPlayers)
+        {
+            return "Maximum players must be greater than or equal to minimum players.";
+        }
+
+        if (string.IsNullOrWhiteSpace(AgeRatingAuthority))
+        {
+            return "Age rating authority is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(AgeRatingValue))
+        {
+            return "Age rating value is required.";
+        }
+
+        if (MinAgeYears < 0)
+        {
+            return "Minimum age must be zero or greater.";
+        }
+
+        if (IsDraftLifecycle)
+        {
+            Visibility = "private";
+        }
+
+        return null;
+    }
 }

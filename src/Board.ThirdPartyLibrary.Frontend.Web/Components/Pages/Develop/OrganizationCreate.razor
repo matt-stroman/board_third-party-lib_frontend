@@ -1,4 +1,4 @@
-@page "/develop/organizations/new"
+@page "/develop/studios/new"
 @attribute [Authorize]
 @inject IBoardLibraryApiClient ApiClient
 @inject NavigationManager NavigationManager
@@ -32,7 +32,7 @@
                 <textarea class="mt-2 min-h-28 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="Description" placeholder="Family co-op studio."></textarea>
             </label>
             <label class="text-sm text-slate-300 sm:col-span-2">Logo URL (optional)
-                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="LogoUrl" placeholder="https://cdn.example.com/organizations/stellar-forge.png" />
+                <input class="mt-2 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100" @bind="LogoUrl" placeholder="https://cdn.example.com/studios/stellar-forge.png" />
             </label>
         </div>
 
@@ -86,7 +86,7 @@
                     NormalizeOptionalField(LogoUrl)));
 
             StatusMessage = "Organization created.";
-            NavigationManager.NavigateTo($"/develop/organizations/{response.Organization.Id:D}");
+            NavigationManager.NavigateTo($"/develop/studios/{response.Organization.Id:D}");
         }
         catch (Exception exception)
         {
@@ -118,3 +118,4 @@
             ? null
             : value.Trim();
 }
+

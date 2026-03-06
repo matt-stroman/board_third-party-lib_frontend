@@ -1,4 +1,4 @@
-@page "/organizations/{Slug}"
+@page "/studios/{Slug}"
 @using Microsoft.AspNetCore.WebUtilities
 @inject IBoardLibraryApiClient ApiClient
 @inject NavigationManager NavigationManager
@@ -449,7 +449,7 @@
             ["acquisitionOnly"] = acquisitionOnly ?? EffectiveAcquisitionOnly ? "true" : null
         };
 
-        return QueryHelpers.AddQueryString($"/organizations/{Slug}", query);
+        return QueryHelpers.AddQueryString($"/studios/{Slug}", query);
     }
 
     private static IReadOnlyList<string> ParseCsv(string? input) =>
@@ -491,3 +491,4 @@
         SearchDebounceTokenSource?.Dispose();
     }
 }
+

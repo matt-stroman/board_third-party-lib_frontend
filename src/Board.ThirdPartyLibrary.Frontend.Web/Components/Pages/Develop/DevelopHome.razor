@@ -247,7 +247,7 @@
                                 <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
                                        value="@NewStudioLogoUrl"
                                        @oninput="OnNewStudioLogoUrlInput"
-                                       placeholder="https://cdn.example.com/organizations/stellar-forge.png" />
+                                       placeholder="https://cdn.example.com/studios/stellar-forge.png" />
                             </label>
                             <div class="mt-6">
                                 <button class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
@@ -304,7 +304,7 @@
                                     <input class="mt-2 w-full rounded-[0.95rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
                                            value="@StudioSettingsLogoUrl"
                                            @oninput="OnStudioSettingsLogoUrlInput"
-                                           placeholder="https://cdn.example.com/organizations/stellar-forge.png" />
+                                           placeholder="https://cdn.example.com/studios/stellar-forge.png" />
                                 </label>
 
                                 <div class="mt-6 flex flex-wrap gap-3">
@@ -363,7 +363,7 @@
                                 Create a new title under <strong class="text-white">@ActiveOrganization.DisplayName</strong>.
                             </p>
                             <a class="mt-6 inline-flex rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950"
-                               href="/develop/organizations/@ActiveOrganization.Id/titles/new"
+                               href="/develop/studios/@ActiveOrganization.Id/titles/new"
                                data-enhance-nav="false">
                                 Open title creation form
                             </a>
@@ -1157,3 +1157,4 @@
         Publishing
     }
 }
+

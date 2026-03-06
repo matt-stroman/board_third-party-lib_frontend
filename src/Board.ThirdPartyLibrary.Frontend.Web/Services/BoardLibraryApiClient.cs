@@ -25,9 +25,9 @@ public interface IBoardLibraryApiClient
     Task<CatalogTitleListResponse> GetCatalogTitlesAsync(CatalogBrowseRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a public catalog title by organization and title slug.
+    /// Gets a public catalog title by studio and title slug.
     /// </summary>
-    Task<CatalogTitle?> GetCatalogTitleAsync(string organizationSlug, string titleSlug, CancellationToken cancellationToken = default);
+    Task<CatalogTitle?> GetCatalogTitleAsync(string studioSlug, string titleSlug, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists public organizations.
@@ -275,7 +275,7 @@ internal sealed class BoardLibraryApiClient(
     {
         var query = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["organizationSlug"] = request.OrganizationSlug,
+            ["studioSlug"] = request.OrganizationSlug,
             ["contentKind"] = request.ContentKind,
             ["genre"] = request.Genre,
             ["sort"] = request.Sort,
@@ -289,11 +289,11 @@ internal sealed class BoardLibraryApiClient(
     }
 
     /// <inheritdoc />
-    public async Task<CatalogTitle?> GetCatalogTitleAsync(string organizationSlug, string titleSlug, CancellationToken cancellationToken = default)
+    public async Task<CatalogTitle?> GetCatalogTitleAsync(string studioSlug, string titleSlug, CancellationToken cancellationToken = default)
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Get,
-            $"/catalog/{Uri.EscapeDataString(organizationSlug)}/{Uri.EscapeDataString(titleSlug)}",
+            $"/catalog/{Uri.EscapeDataString(studioSlug)}/{Uri.EscapeDataString(titleSlug)}",
             requiresAuthentication: false);
 
         return await SendOptionalAsync<CatalogTitleResponse>(httpRequest, cancellationToken) is { } response
@@ -304,7 +304,7 @@ internal sealed class BoardLibraryApiClient(
     /// <inheritdoc />
     public async Task<OrganizationListResponse> GetPublicOrganizationsAsync(CancellationToken cancellationToken = default)
     {
-        using var httpRequest = CreateRequest(HttpMethod.Get, "/organizations", requiresAuthentication: false);
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/studios", requiresAuthentication: false);
         return await SendAsync<OrganizationListResponse>(httpRequest, cancellationToken)
             ?? new OrganizationListResponse([]);
     }
@@ -314,7 +314,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Get,
-            $"/organizations/{Uri.EscapeDataString(slug)}",
+            $"/studios/{Uri.EscapeDataString(slug)}",
             requiresAuthentication: false);
 
         return await SendOptionalAsync<OrganizationResponse>(httpRequest, cancellationToken) is { } response
@@ -461,7 +461,7 @@ internal sealed class BoardLibraryApiClient(
     /// <inheritdoc />
     public async Task<DeveloperOrganizationListResponse> GetManagedOrganizationsAsync(CancellationToken cancellationToken = default)
     {
-        using var httpRequest = CreateRequest(HttpMethod.Get, "/developer/organizations", requiresAuthentication: true);
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/developer/studios", requiresAuthentication: true);
         return await SendAsync<DeveloperOrganizationListResponse>(httpRequest, cancellationToken)
             ?? new DeveloperOrganizationListResponse([]);
     }
@@ -469,7 +469,7 @@ internal sealed class BoardLibraryApiClient(
     /// <inheritdoc />
     public async Task<OrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request, CancellationToken cancellationToken = default)
     {
-        using var httpRequest = CreateRequest(HttpMethod.Post, "/organizations", requiresAuthentication: true);
+        using var httpRequest = CreateRequest(HttpMethod.Post, "/studios", requiresAuthentication: true);
         httpRequest.Content = JsonContent.Create(request);
         return await SendAsync<OrganizationResponse>(httpRequest, cancellationToken)
             ?? new OrganizationResponse(
@@ -488,7 +488,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Put,
-            $"/developer/organizations/{organizationId:D}",
+            $"/developer/studios/{organizationId:D}",
             requiresAuthentication: true);
 
         httpRequest.Content = JsonContent.Create(request);
@@ -509,7 +509,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Get,
-            $"/developer/organizations/{organizationId:D}/titles",
+            $"/developer/studios/{organizationId:D}/titles",
             requiresAuthentication: true);
 
         return await SendAsync<DeveloperTitleListResponse>(httpRequest, cancellationToken)
@@ -521,7 +521,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Post,
-            $"/developer/organizations/{organizationId:D}/titles",
+            $"/developer/studios/{organizationId:D}/titles",
             requiresAuthentication: true);
 
         httpRequest.Content = JsonContent.Create(request);
@@ -770,7 +770,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Get,
-            $"/developer/organizations/{organizationId:D}/integration-connections",
+            $"/developer/studios/{organizationId:D}/integration-connections",
             requiresAuthentication: true);
 
         return await SendAsync<IntegrationConnectionListResponse>(httpRequest, cancellationToken)
@@ -782,7 +782,7 @@ internal sealed class BoardLibraryApiClient(
     {
         using var httpRequest = CreateRequest(
             HttpMethod.Post,
-            $"/developer/organizations/{organizationId:D}/integration-connections",
+            $"/developer/studios/{organizationId:D}/integration-connections",
             requiresAuthentication: true);
 
         httpRequest.Content = JsonContent.Create(request);
@@ -1232,7 +1232,9 @@ public sealed record CatalogPaging(
 /// <param name="AcquisitionUrl">Primary acquisition URL.</param>
 public sealed record CatalogTitleSummary(
     Guid Id,
+    [property: JsonPropertyName("studioId")]
     Guid OrganizationId,
+    [property: JsonPropertyName("studioSlug")]
     string OrganizationSlug,
     string Slug,
     string ContentKind,
@@ -1283,7 +1285,9 @@ public sealed record CatalogTitleSummary(
 /// <param name="UpdatedAt">UTC update timestamp.</param>
 public sealed record CatalogTitle(
     Guid Id,
+    [property: JsonPropertyName("studioId")]
     Guid OrganizationId,
+    [property: JsonPropertyName("studioSlug")]
     string OrganizationSlug,
     string Slug,
     string ContentKind,
@@ -1532,13 +1536,13 @@ public sealed record UpdateOrganizationRequest(
 /// Organization response wrapper.
 /// </summary>
 /// <param name="Organization">Organization details.</param>
-public sealed record OrganizationResponse(OrganizationSummary Organization);
+public sealed record OrganizationResponse([property: JsonPropertyName("studio")] OrganizationSummary Organization);
 
 /// <summary>
 /// Public organization list response wrapper.
 /// </summary>
 /// <param name="Organizations">Returned organizations.</param>
-public sealed record OrganizationListResponse(IReadOnlyList<OrganizationSummary> Organizations);
+public sealed record OrganizationListResponse([property: JsonPropertyName("studios")] IReadOnlyList<OrganizationSummary> Organizations);
 
 /// <summary>
 /// Public organization details.
@@ -1563,7 +1567,7 @@ public sealed record OrganizationSummary(
 /// Developer-visible organization list response.
 /// </summary>
 /// <param name="Organizations">Organizations the caller can manage.</param>
-public sealed record DeveloperOrganizationListResponse(IReadOnlyList<DeveloperOrganizationSummary> Organizations);
+public sealed record DeveloperOrganizationListResponse([property: JsonPropertyName("studios")] IReadOnlyList<DeveloperOrganizationSummary> Organizations);
 
 /// <summary>
 /// Developer-visible organization summary.
@@ -1631,7 +1635,9 @@ public sealed record DeveloperTitleResponse(DeveloperTitle Title);
 /// </summary>
 public sealed record DeveloperTitle(
     Guid Id,
+    [property: JsonPropertyName("studioId")]
     Guid OrganizationId,
+    [property: JsonPropertyName("studioSlug")]
     string OrganizationSlug,
     string Slug,
     string ContentKind,
@@ -1790,6 +1796,7 @@ public sealed record UpsertIntegrationConnectionRequest(
 /// </summary>
 public sealed record IntegrationConnection(
     Guid Id,
+    [property: JsonPropertyName("studioId")]
     Guid OrganizationId,
     Guid? SupportedPublisherId,
     SupportedPublisher? SupportedPublisher,

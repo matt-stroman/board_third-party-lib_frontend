@@ -1,4 +1,4 @@
-@page "/develop/organizations/{OrganizationId:guid}"
+@page "/develop/studios/{OrganizationId:guid}"
 @attribute [Authorize]
 @inject IBoardLibraryApiClient ApiClient
 
@@ -43,8 +43,8 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/develop/organizations/@OrganizationId/settings">Edit organization</a>
-                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop/organizations/@OrganizationId/titles/new">New title</a>
+                    <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/develop/studios/@OrganizationId/settings">Edit organization</a>
+                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop/studios/@OrganizationId/titles/new">New title</a>
                 </div>
             </div>
 
@@ -64,15 +64,15 @@
             </div>
 
             <div class="mt-6 grid gap-4 sm:grid-cols-3">
-                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/organizations/@OrganizationId/settings">
+                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/studios/@OrganizationId/settings">
                     <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Settings</div>
                     <div class="mt-3 text-white">Update slug, display name, description, and logo URL</div>
                 </a>
-                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/organizations/@OrganizationId/memberships">
+                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/studios/@OrganizationId/memberships">
                     <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Memberships</div>
                     <div class="mt-3 text-white">Manage owners, admins, and editors</div>
                 </a>
-                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/organizations/@OrganizationId/titles">
+                <a class="rounded-[1.25rem] bg-black/15 p-4 text-sm text-slate-300 transition hover:border hover:border-cyan-300/35" href="/develop/studios/@OrganizationId/titles">
                     <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Titles</div>
                     <div class="mt-3 text-white">Open title management</div>
                 </a>
@@ -82,7 +82,7 @@
         <section class="space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="font-['Aptos_Display','Trebuchet_MS',sans-serif] text-2xl font-bold uppercase tracking-[0.08em] text-white">Recent titles</h2>
-                <a class="text-sm text-cyan-200 transition hover:text-cyan-100" href="/develop/organizations/@OrganizationId/titles">View all</a>
+                <a class="text-sm text-cyan-200 transition hover:text-cyan-100" href="/develop/studios/@OrganizationId/titles">View all</a>
             </div>
 
             @if (OrganizationTitles.Count == 0)
@@ -161,3 +161,4 @@
         }
     }
 }
+

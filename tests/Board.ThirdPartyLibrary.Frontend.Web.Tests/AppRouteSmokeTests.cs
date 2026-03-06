@@ -28,17 +28,17 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [Theory]
     [InlineData("/", "Board Enthusiasts")]
     [InlineData("/browse", "Star Blasters")]
-    [InlineData("/organizations/stellar-forge", "Stellar Forge")]
+    [InlineData("/studios/stellar-forge", "Stellar Forge")]
     [InlineData("/player", "My Games")]
     [InlineData("/player/wishlist", "No wishlist items yet")]
     [InlineData("/browse/stellar-forge/star-blasters", "View on itch.io")]
     [InlineData("/develop", "Stellar Forge")]
     [InlineData("/moderate", "Moderation access unavailable")]
-    [InlineData("/develop/organizations/new", "Create organization")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111", "Edit organization")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/settings", "Save changes")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/titles", "Manage title metadata")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/titles/new", "Create title")]
+    [InlineData("/develop/studios/new", "Create organization")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111", "Edit organization")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/settings", "Save changes")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/titles", "Manage title metadata")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/titles/new", "Create title")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333", "Save title settings")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/metadata", "Save metadata")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/media", "Configure card, hero, and logo media")]
@@ -1092,3 +1092,4 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         }
     }
 }
+

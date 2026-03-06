@@ -1,4 +1,4 @@
-@page "/develop/organizations/{OrganizationId:guid}/titles"
+@page "/develop/studios/{OrganizationId:guid}/titles"
 @attribute [Authorize]
 @inject IBoardLibraryApiClient ApiClient
 
@@ -34,7 +34,7 @@
                 <h1 class="mt-4 app-page-title">@Organization.DisplayName</h1>
                 <p class="mt-4 text-base leading-8 text-slate-300">Manage title metadata, media, releases, and acquisition bindings.</p>
             </div>
-            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/develop/organizations/@OrganizationId/titles/new">Create title</a>
+            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/develop/studios/@OrganizationId/titles/new">Create title</a>
         </div>
 
         @if (Titles.Count == 0)
@@ -99,3 +99,4 @@
         }
     }
 }
+

@@ -127,7 +127,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Verified Developer Role", content);
+        Assert.Contains("Verify Developers", content);
         Assert.DoesNotContain("Moderation access unavailable", content, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -229,7 +229,8 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         UserProfile? UserProfile = null,
         DeveloperEnrollmentResponse? DeveloperEnrollment = null,
         BoardProfile? BoardProfile = null,
-        DeveloperOrganizationListResponse? ManagedOrganizations = null)
+        DeveloperOrganizationListResponse? ManagedOrganizations = null,
+        ModerationDeveloperListResponse? ModerationDevelopers = null)
     {
         public static TestApiData Default { get; } = new(
             CurrentUser: new CurrentUserResponse(
@@ -273,6 +274,14 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "Family co-op studio.",
                         "https://cdn.example.com/orgs/stellar-forge.png",
                         "owner")
+                ]),
+            ModerationDevelopers: new ModerationDeveloperListResponse(
+                [
+                    new ModerationDeveloperSummary(
+                        "developer-123",
+                        "dev-one",
+                        "Developer One",
+                        "dev-one@boardtpl.local")
                 ]));
     }
 
@@ -509,19 +518,30 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         true,
                         false)));
 
-        public Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default) =>
+        public Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(data.ModerationDevelopers ?? new ModerationDeveloperListResponse([]));
+
+        public Task<VerifiedDeveloperRoleStateResponse> GetVerifiedDeveloperRoleStateAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new VerifiedDeveloperRoleStateResponse(
                     new VerifiedDeveloperRoleState(
-                        developerSubject,
+                        developerIdentifier,
+                        false,
+                        false)));
+
+        public Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new VerifiedDeveloperRoleStateResponse(
+                    new VerifiedDeveloperRoleState(
+                        developerIdentifier,
                         true,
                         false)));
 
-        public Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default) =>
+        public Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new VerifiedDeveloperRoleStateResponse(
                     new VerifiedDeveloperRoleState(
-                        developerSubject,
+                        developerIdentifier,
                         false,
                         false)));
 

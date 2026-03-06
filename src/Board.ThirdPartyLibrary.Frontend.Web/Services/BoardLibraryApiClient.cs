@@ -85,14 +85,24 @@ public interface IBoardLibraryApiClient
     Task<DeveloperEnrollmentResponse> SubmitDeveloperEnrollmentAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lists users available to moderation verification workflows.
+    /// </summary>
+    Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets verified-developer state for a moderation-selected user.
+    /// </summary>
+    Task<VerifiedDeveloperRoleStateResponse> GetVerifiedDeveloperRoleStateAsync(string developerIdentifier, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Grants verified-developer role to the target developer subject.
     /// </summary>
-    Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default);
+    Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes verified-developer role from the target developer subject.
     /// </summary>
-    Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default);
+    Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists organizations the current caller can manage.
@@ -402,29 +412,50 @@ internal sealed class BoardLibraryApiClient(
     }
 
     /// <inheritdoc />
-    public async Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default)
+    public async Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default)
     {
-        var encodedSubject = Uri.EscapeDataString(developerSubject.Trim());
-        using var httpRequest = CreateRequest(
-            HttpMethod.Put,
-            $"/moderation/developers/{encodedSubject}/verified-developer",
-            requiresAuthentication: true);
-
-        return await SendAsync<VerifiedDeveloperRoleStateResponse>(httpRequest, cancellationToken)
-            ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerSubject, true, false));
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/moderation/developers", requiresAuthentication: true);
+        return await SendAsync<ModerationDeveloperListResponse>(httpRequest, cancellationToken)
+            ?? new ModerationDeveloperListResponse([]);
     }
 
     /// <inheritdoc />
-    public async Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default)
+    public async Task<VerifiedDeveloperRoleStateResponse> GetVerifiedDeveloperRoleStateAsync(string developerIdentifier, CancellationToken cancellationToken = default)
     {
-        var encodedSubject = Uri.EscapeDataString(developerSubject.Trim());
+        var encodedIdentifier = Uri.EscapeDataString(developerIdentifier.Trim());
         using var httpRequest = CreateRequest(
-            HttpMethod.Delete,
-            $"/moderation/developers/{encodedSubject}/verified-developer",
+            HttpMethod.Get,
+            $"/moderation/developers/{encodedIdentifier}/verification",
             requiresAuthentication: true);
 
         return await SendAsync<VerifiedDeveloperRoleStateResponse>(httpRequest, cancellationToken)
-            ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerSubject, false, false));
+            ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerIdentifier, false, false));
+    }
+
+    /// <inheritdoc />
+    public async Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default)
+    {
+        var encodedIdentifier = Uri.EscapeDataString(developerIdentifier.Trim());
+        using var httpRequest = CreateRequest(
+            HttpMethod.Put,
+            $"/moderation/developers/{encodedIdentifier}/verified-developer",
+            requiresAuthentication: true);
+
+        return await SendAsync<VerifiedDeveloperRoleStateResponse>(httpRequest, cancellationToken)
+            ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerIdentifier, true, false));
+    }
+
+    /// <inheritdoc />
+    public async Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default)
+    {
+        var encodedIdentifier = Uri.EscapeDataString(developerIdentifier.Trim());
+        using var httpRequest = CreateRequest(
+            HttpMethod.Delete,
+            $"/moderation/developers/{encodedIdentifier}/verified-developer",
+            requiresAuthentication: true);
+
+        return await SendAsync<VerifiedDeveloperRoleStateResponse>(httpRequest, cancellationToken)
+            ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerIdentifier, false, false));
     }
 
     /// <inheritdoc />
@@ -1390,6 +1421,25 @@ public sealed record SetAvatarUrlRequest(string AvatarUrl);
 /// </summary>
 /// <param name="DeveloperEnrollment">Developer enrollment state.</param>
 public sealed record DeveloperEnrollmentResponse(DeveloperEnrollment DeveloperEnrollment);
+
+/// <summary>
+/// Response wrapper for moderation user listings.
+/// </summary>
+/// <param name="Developers">Returned moderation user list.</param>
+public sealed record ModerationDeveloperListResponse(IReadOnlyList<ModerationDeveloperSummary> Developers);
+
+/// <summary>
+/// Moderation-visible user summary used for verification workflows.
+/// </summary>
+/// <param name="DeveloperSubject">Stable subject identifier.</param>
+/// <param name="UserName">Cached username when available.</param>
+/// <param name="DisplayName">Cached display name when available.</param>
+/// <param name="Email">Cached email when available.</param>
+public sealed record ModerationDeveloperSummary(
+    string DeveloperSubject,
+    string? UserName,
+    string? DisplayName,
+    string? Email);
 
 /// <summary>
 /// Response wrapper for moderation verified-developer role mutations.

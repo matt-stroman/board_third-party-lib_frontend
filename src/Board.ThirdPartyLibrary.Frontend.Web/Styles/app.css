@@ -40,7 +40,17 @@
 
 @layer components {
   .app-workspace-shell {
-    @apply w-full;
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-workspace-content {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 4);
   }
 
   .app-workspace-grid {

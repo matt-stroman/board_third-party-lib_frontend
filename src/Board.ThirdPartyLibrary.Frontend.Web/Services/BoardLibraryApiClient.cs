@@ -45,6 +45,16 @@ public interface IBoardLibraryApiClient
     Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lists current-user notifications.
+    /// </summary>
+    Task<UserNotificationListResponse> GetCurrentUserNotificationsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Marks a current-user notification as read.
+    /// </summary>
+    Task<UserNotificationResponse> MarkCurrentUserNotificationReadAsync(Guid notificationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets application-managed profile details for the current authenticated user.
     /// </summary>
     Task<UserProfile?> GetCurrentUserProfileAsync(CancellationToken cancellationToken = default);
@@ -85,6 +95,56 @@ public interface IBoardLibraryApiClient
     Task<DeveloperEnrollmentResponse> SubmitDeveloperEnrollmentAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lists owned titles for the current player.
+    /// </summary>
+    Task<PlayerTitleListResponse> GetPlayerLibraryAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a title to the current player's owned library.
+    /// </summary>
+    Task<PlayerCollectionMutationResponse> AddTitleToPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a title from the current player's owned library.
+    /// </summary>
+    Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists wishlist titles for the current player.
+    /// </summary>
+    Task<PlayerTitleListResponse> GetPlayerWishlistAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a title to the current player's wishlist.
+    /// </summary>
+    Task<PlayerCollectionMutationResponse> AddTitleToPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a title from the current player's wishlist.
+    /// </summary>
+    Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists title reports submitted by the current player.
+    /// </summary>
+    Task<PlayerTitleReportListResponse> GetPlayerTitleReportsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a title report for the current player.
+    /// </summary>
+    Task<PlayerTitleReportResponse> CreatePlayerTitleReportAsync(CreatePlayerTitleReportRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a title-report thread for the reporting player.
+    /// </summary>
+    Task<TitleReportDetail?> GetPlayerTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a player-authored message to a title-report thread.
+    /// </summary>
+    Task<TitleReportDetailResponse> AddPlayerTitleReportMessageAsync(Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Lists users available to moderation verification workflows.
     /// </summary>
     Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default);
@@ -103,6 +163,31 @@ public interface IBoardLibraryApiClient
     /// Removes verified-developer role from the target developer subject.
     /// </summary>
     Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists title reports visible to moderators.
+    /// </summary>
+    Task<TitleReportListResponse> GetModerationTitleReportsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets title-report thread details for moderators.
+    /// </summary>
+    Task<TitleReportDetail?> GetModerationTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a moderator-authored message to a title-report thread.
+    /// </summary>
+    Task<TitleReportDetailResponse> AddModerationTitleReportMessageAsync(Guid reportId, AddModerationTitleReportMessageRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validates a title report.
+    /// </summary>
+    Task<TitleReportDetailResponse> ValidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Invalidates a title report.
+    /// </summary>
+    Task<TitleReportDetailResponse> InvalidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists studios the current caller can manage.
@@ -153,6 +238,21 @@ public interface IBoardLibraryApiClient
     /// Lists titles for a studio the caller can manage.
     /// </summary>
     Task<DeveloperTitleListResponse> GetStudioTitlesAsync(Guid studioId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists title reports for a developer-managed title.
+    /// </summary>
+    Task<TitleReportListResponse> GetDeveloperTitleReportsAsync(Guid titleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a title-report thread for a developer-managed title.
+    /// </summary>
+    Task<TitleReportDetail?> GetDeveloperTitleReportAsync(Guid titleId, Guid reportId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a developer-authored message to a title-report thread.
+    /// </summary>
+    Task<TitleReportDetailResponse> AddDeveloperTitleReportMessageAsync(Guid titleId, Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new title within the selected studio.
@@ -360,6 +460,22 @@ internal sealed class BoardLibraryApiClient(
     }
 
     /// <inheritdoc />
+    public async Task<UserNotificationListResponse> GetCurrentUserNotificationsAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/identity/me/notifications", requiresAuthentication: true);
+        return await SendAsync<UserNotificationListResponse>(httpRequest, cancellationToken)
+            ?? new UserNotificationListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserNotificationResponse> MarkCurrentUserNotificationReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/identity/me/notifications/{notificationId:D}/read", requiresAuthentication: true);
+        return await SendAsync<UserNotificationResponse>(httpRequest, cancellationToken)
+            ?? new UserNotificationResponse(new UserNotification(notificationId, string.Empty, string.Empty, string.Empty, null, true, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
     public async Task<UserProfile?> GetCurrentUserProfileAsync(CancellationToken cancellationToken = default)
     {
         using var httpRequest = CreateRequest(HttpMethod.Get, "/identity/me/profile", requiresAuthentication: true);
@@ -442,6 +558,89 @@ internal sealed class BoardLibraryApiClient(
     }
 
     /// <inheritdoc />
+    public async Task<PlayerTitleListResponse> GetPlayerLibraryAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/player/library", requiresAuthentication: true);
+        return await SendAsync<PlayerTitleListResponse>(httpRequest, cancellationToken)
+            ?? new PlayerTitleListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerCollectionMutationResponse> AddTitleToPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Put, $"/player/library/titles/{titleId:D}", requiresAuthentication: true);
+        return await SendAsync<PlayerCollectionMutationResponse>(httpRequest, cancellationToken)
+            ?? new PlayerCollectionMutationResponse(titleId, true, false);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Delete, $"/player/library/titles/{titleId:D}", requiresAuthentication: true);
+        return await SendAsync<PlayerCollectionMutationResponse>(httpRequest, cancellationToken)
+            ?? new PlayerCollectionMutationResponse(titleId, false, false);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerTitleListResponse> GetPlayerWishlistAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/player/wishlist", requiresAuthentication: true);
+        return await SendAsync<PlayerTitleListResponse>(httpRequest, cancellationToken)
+            ?? new PlayerTitleListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerCollectionMutationResponse> AddTitleToPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Put, $"/player/wishlist/titles/{titleId:D}", requiresAuthentication: true);
+        return await SendAsync<PlayerCollectionMutationResponse>(httpRequest, cancellationToken)
+            ?? new PlayerCollectionMutationResponse(titleId, true, false);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Delete, $"/player/wishlist/titles/{titleId:D}", requiresAuthentication: true);
+        return await SendAsync<PlayerCollectionMutationResponse>(httpRequest, cancellationToken)
+            ?? new PlayerCollectionMutationResponse(titleId, false, false);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerTitleReportListResponse> GetPlayerTitleReportsAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/player/reports", requiresAuthentication: true);
+        return await SendAsync<PlayerTitleReportListResponse>(httpRequest, cancellationToken)
+            ?? new PlayerTitleReportListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlayerTitleReportResponse> CreatePlayerTitleReportAsync(CreatePlayerTitleReportRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, "/player/reports", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<PlayerTitleReportResponse>(httpRequest, cancellationToken)
+            ?? new PlayerTitleReportResponse(new PlayerTitleReportSummary(Guid.Empty, request.TitleId, string.Empty, string.Empty, string.Empty, "open", request.Reason, DateTime.UtcNow, DateTime.UtcNow));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetail?> GetPlayerTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, $"/player/reports/{reportId:D}", requiresAuthentication: true);
+        return await SendOptionalAsync<TitleReportDetailResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Report
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetailResponse> AddPlayerTitleReportMessageAsync(Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/player/reports/{reportId:D}/messages", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReportDetailResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportDetailResponse(CreateFallbackTitleReportDetail(reportId));
+    }
+
+    /// <inheritdoc />
     public async Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default)
     {
         using var httpRequest = CreateRequest(HttpMethod.Get, "/moderation/developers", requiresAuthentication: true);
@@ -486,6 +685,50 @@ internal sealed class BoardLibraryApiClient(
 
         return await SendAsync<VerifiedDeveloperRoleStateResponse>(httpRequest, cancellationToken)
             ?? new VerifiedDeveloperRoleStateResponse(new VerifiedDeveloperRoleState(developerIdentifier, false, false));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportListResponse> GetModerationTitleReportsAsync(CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, "/moderation/title-reports", requiresAuthentication: true);
+        return await SendAsync<TitleReportListResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetail?> GetModerationTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, $"/moderation/title-reports/{reportId:D}", requiresAuthentication: true);
+        return await SendOptionalAsync<TitleReportDetailResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Report
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetailResponse> AddModerationTitleReportMessageAsync(Guid reportId, AddModerationTitleReportMessageRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/moderation/title-reports/{reportId:D}/messages", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReportDetailResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportDetailResponse(CreateFallbackTitleReportDetail(reportId));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetailResponse> ValidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/moderation/title-reports/{reportId:D}/validate", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReportDetailResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportDetailResponse(CreateFallbackTitleReportDetail(reportId));
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetailResponse> InvalidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/moderation/title-reports/{reportId:D}/invalidate", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReportDetailResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportDetailResponse(CreateFallbackTitleReportDetail(reportId));
     }
 
     /// <inheritdoc />
@@ -605,6 +848,32 @@ internal sealed class BoardLibraryApiClient(
 
         return await SendAsync<DeveloperTitleListResponse>(httpRequest, cancellationToken)
             ?? new DeveloperTitleListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportListResponse> GetDeveloperTitleReportsAsync(Guid titleId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, $"/developer/titles/{titleId:D}/reports", requiresAuthentication: true);
+        return await SendAsync<TitleReportListResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportListResponse([]);
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetail?> GetDeveloperTitleReportAsync(Guid titleId, Guid reportId, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Get, $"/developer/titles/{titleId:D}/reports/{reportId:D}", requiresAuthentication: true);
+        return await SendOptionalAsync<TitleReportDetailResponse>(httpRequest, cancellationToken) is { } response
+            ? response.Report
+            : null;
+    }
+
+    /// <inheritdoc />
+    public async Task<TitleReportDetailResponse> AddDeveloperTitleReportMessageAsync(Guid titleId, Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = CreateRequest(HttpMethod.Post, $"/developer/titles/{titleId:D}/reports/{reportId:D}/messages", requiresAuthentication: true);
+        httpRequest.Content = JsonContent.Create(request);
+        return await SendAsync<TitleReportDetailResponse>(httpRequest, cancellationToken)
+            ?? new TitleReportDetailResponse(CreateFallbackTitleReportDetail(reportId));
     }
 
     /// <inheritdoc />
@@ -1223,6 +1492,33 @@ internal sealed class BoardLibraryApiClient(
             DateTime.UtcNow,
             DateTime.UtcNow);
 
+    private static TitleReportDetail CreateFallbackTitleReportDetail(Guid reportId) =>
+        new(
+            new TitleReportSummary(
+                reportId,
+                Guid.Empty,
+                Guid.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                1,
+                string.Empty,
+                null,
+                null,
+                null,
+                "open",
+                string.Empty,
+                DateTime.UtcNow,
+                DateTime.UtcNow,
+                null,
+                0),
+            null,
+            null,
+            []);
+
     private static TitleIntegrationBinding CreateFallbackTitleIntegrationBinding(Guid titleId, UpsertTitleIntegrationBindingRequest request) =>
         new(
             Guid.Empty,
@@ -1352,6 +1648,7 @@ public sealed record CatalogTitleSummary(
     string ContentKind,
     string LifecycleStatus,
     string Visibility,
+    bool IsReported,
     int CurrentMetadataRevision,
     string DisplayName,
     string ShortDescription,
@@ -1405,6 +1702,7 @@ public sealed record CatalogTitle(
     string ContentKind,
     string LifecycleStatus,
     string Visibility,
+    bool IsReported,
     int CurrentMetadataRevision,
     string DisplayName,
     string ShortDescription,
@@ -1488,6 +1786,32 @@ public sealed record CurrentUserResponse(
     IReadOnlyList<string> Roles);
 
 /// <summary>
+/// Response wrapper for current-user notifications.
+/// </summary>
+/// <param name="Notifications">Returned notifications.</param>
+public sealed record UserNotificationListResponse(IReadOnlyList<UserNotification> Notifications);
+
+/// <summary>
+/// Response wrapper for a single current-user notification.
+/// </summary>
+/// <param name="Notification">Returned notification.</param>
+public sealed record UserNotificationResponse(UserNotification Notification);
+
+/// <summary>
+/// Current-user notification payload rendered in shell workflows.
+/// </summary>
+public sealed record UserNotification(
+    Guid Id,
+    string Category,
+    string Title,
+    string Body,
+    string? ActionUrl,
+    bool IsRead,
+    DateTime? ReadAt,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
 /// Application-managed profile details for the current authenticated user.
 /// </summary>
 /// <param name="Subject">Stable user subject identifier.</param>
@@ -1539,6 +1863,65 @@ public sealed record SetAvatarUrlRequest(string AvatarUrl);
 public sealed record DeveloperEnrollmentResponse(DeveloperEnrollment DeveloperEnrollment);
 
 /// <summary>
+/// Player library or wishlist response wrapper.
+/// </summary>
+/// <param name="Titles">Returned title summaries.</param>
+public sealed record PlayerTitleListResponse(IReadOnlyList<CatalogTitleSummary> Titles);
+
+/// <summary>
+/// Player collection toggle response.
+/// </summary>
+/// <param name="TitleId">Target title identifier.</param>
+/// <param name="Included">Whether the title is included after the mutation.</param>
+/// <param name="AlreadyInRequestedState">Whether the target already matched the requested state.</param>
+public sealed record PlayerCollectionMutationResponse(
+    Guid TitleId,
+    bool Included,
+    bool AlreadyInRequestedState);
+
+/// <summary>
+/// Request payload for creating a player title report.
+/// </summary>
+/// <param name="TitleId">Reported title identifier.</param>
+/// <param name="Reason">Player-supplied report reason.</param>
+public sealed record CreatePlayerTitleReportRequest(Guid TitleId, string Reason);
+
+/// <summary>
+/// Player report list response wrapper.
+/// </summary>
+/// <param name="Reports">Returned player reports.</param>
+public sealed record PlayerTitleReportListResponse(IReadOnlyList<PlayerTitleReportSummary> Reports);
+
+/// <summary>
+/// Player report response wrapper.
+/// </summary>
+/// <param name="Report">Returned report summary.</param>
+public sealed record PlayerTitleReportResponse(PlayerTitleReportSummary Report);
+
+/// <summary>
+/// Player-visible title report summary.
+/// </summary>
+/// <param name="Id">Report identifier.</param>
+/// <param name="TitleId">Reported title identifier.</param>
+/// <param name="StudioSlug">Reported title studio slug.</param>
+/// <param name="TitleSlug">Reported title slug.</param>
+/// <param name="TitleDisplayName">Reported title display name.</param>
+/// <param name="Status">Current report workflow status.</param>
+/// <param name="Reason">Player-supplied report reason.</param>
+/// <param name="CreatedAt">UTC creation timestamp.</param>
+/// <param name="UpdatedAt">UTC update timestamp.</param>
+public sealed record PlayerTitleReportSummary(
+    Guid Id,
+    Guid TitleId,
+    string StudioSlug,
+    string TitleSlug,
+    string TitleDisplayName,
+    string Status,
+    string Reason,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+/// <summary>
 /// Response wrapper for moderation user listings.
 /// </summary>
 /// <param name="Developers">Returned moderation user list.</param>
@@ -1573,6 +1956,94 @@ public sealed record VerifiedDeveloperRoleState(
     string DeveloperSubject,
     bool VerifiedDeveloper,
     bool AlreadyInRequestedState);
+
+/// <summary>
+/// Title report list response wrapper.
+/// </summary>
+/// <param name="Reports">Returned title report summaries.</param>
+public sealed record TitleReportListResponse(IReadOnlyList<TitleReportSummary> Reports);
+
+/// <summary>
+/// Title report detail response wrapper.
+/// </summary>
+/// <param name="Report">Returned title report detail.</param>
+public sealed record TitleReportDetailResponse(TitleReportDetail Report);
+
+/// <summary>
+/// Moderation- or developer-visible title report summary.
+/// </summary>
+public sealed record TitleReportSummary(
+    Guid Id,
+    Guid TitleId,
+    Guid StudioId,
+    string StudioSlug,
+    string StudioDisplayName,
+    string TitleSlug,
+    string TitleDisplayName,
+    string TitleShortDescription,
+    string GenreDisplay,
+    int CurrentMetadataRevision,
+    string ReporterSubject,
+    string? ReporterUserName,
+    string? ReporterDisplayName,
+    string? ReporterEmail,
+    string Status,
+    string Reason,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    DateTime? ResolvedAt,
+    int MessageCount);
+
+/// <summary>
+/// Detailed title-report thread payload.
+/// </summary>
+public sealed record TitleReportDetail(
+    TitleReportSummary Report,
+    string? ResolutionNote,
+    TitleReportActor? ResolvedBy,
+    IReadOnlyList<TitleReportMessage> Messages);
+
+/// <summary>
+/// Actor summary rendered in title-report threads.
+/// </summary>
+public sealed record TitleReportActor(
+    string Subject,
+    string? UserName,
+    string? DisplayName,
+    string? Email);
+
+/// <summary>
+/// Message payload rendered in title-report threads.
+/// </summary>
+public sealed record TitleReportMessage(
+    Guid Id,
+    string AuthorSubject,
+    string? AuthorUserName,
+    string? AuthorDisplayName,
+    string? AuthorEmail,
+    string AuthorRole,
+    string Audience,
+    string Message,
+    DateTime CreatedAt);
+
+/// <summary>
+/// Request payload for adding a title-report thread message.
+/// </summary>
+/// <param name="Message">Thread message body.</param>
+public sealed record AddTitleReportMessageRequest(string Message);
+
+/// <summary>
+/// Request payload for a moderator-authored title-report message.
+/// </summary>
+/// <param name="Message">Thread message body.</param>
+/// <param name="RecipientRole">Recipient lane for the message, either player or developer.</param>
+public sealed record AddModerationTitleReportMessageRequest(string Message, string RecipientRole);
+
+/// <summary>
+/// Request payload for validating or invalidating a title report.
+/// </summary>
+/// <param name="Note">Optional moderation note.</param>
+public sealed record ModerateTitleReportDecisionRequest(string? Note);
 
 /// <summary>
 /// Developer-enrollment result for the current user.

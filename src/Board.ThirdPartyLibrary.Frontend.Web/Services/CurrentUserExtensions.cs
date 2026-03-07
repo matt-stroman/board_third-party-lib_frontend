@@ -22,6 +22,14 @@ internal static class CurrentUserExtensions
         currentUser.HasRole("moderator");
 
     /// <summary>
+    /// Determines whether the current user has player access.
+    /// </summary>
+    /// <param name="currentUser">Current user response to evaluate.</param>
+    /// <returns><see langword="true" /> when the user can use player workflows; otherwise <see langword="false" />.</returns>
+    public static bool IsPlayer(this CurrentUserResponse? currentUser) =>
+        currentUser.HasRole("player");
+
+    /// <summary>
     /// Determines whether the current user has the supplied platform role.
     /// </summary>
     /// <param name="currentUser">Current user response to evaluate.</param>

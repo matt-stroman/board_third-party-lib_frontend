@@ -1,6 +1,8 @@
 @page "/develop"
 @attribute [Authorize]
+@using Microsoft.AspNetCore.WebUtilities
 @inject IBoardLibraryApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 <PageTitle>Developer Console</PageTitle>
 
@@ -494,17 +496,108 @@
                                 </div>
                             }
                         }
-                        else
+                        else if (ActiveWorkflow == "titles-create")
                         {
                             <h2 class="text-2xl font-semibold text-white">Create Title</h2>
-                            <p class="mt-3 text-sm leading-7 text-slate-300">
-                                Create a new title under <strong class="text-white">@ActiveStudio.DisplayName</strong>.
-                            </p>
-                            <a class="mt-6 inline-flex rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-slate-950"
-                               href="/develop/studios/@ActiveStudio.Id/titles/new"
-                               data-enhance-nav="false">
-                                Open title creation form
-                            </a>
+                            <NewTitle StudioId="@ActiveStudio.Id"
+                                      Embedded="true"
+                                      StudioDisplayName="@ActiveStudio.DisplayName"
+                                      NavigateOnSuccess="false"
+                                      OnCreated="HandleNewTitleCreatedAsync" />
+                        }
+                        else
+                        {
+                            <h2 class="text-2xl font-semibold text-white">Title Reports</h2>
+                            @if (ActiveTitle is null)
+                            {
+                                <p class="mt-3 text-sm text-slate-300">Choose a title to review reported-title threads.</p>
+                            }
+                            else
+                            {
+                                <p class="mt-3 text-sm leading-7 text-slate-300">
+                                    Title: <strong class="text-white">@ActiveTitle.DisplayName</strong>
+                                </p>
+
+                                @if (!string.IsNullOrWhiteSpace(TitleReportStatusMessage))
+                                {
+                                    <div class="mt-4 rounded-[1rem] border px-4 py-3 text-sm @(TitleReportStatusIsError ? "border-rose-300/35 bg-rose-500/10 text-rose-100" : "border-cyan-300/25 bg-cyan-300/10 text-cyan-50")">
+                                        @TitleReportStatusMessage
+                                    </div>
+                                }
+
+                                @if (ActiveTitleReports.Count == 0)
+                                {
+                                    <p class="mt-6 text-sm text-slate-300">No reports are open for this title.</p>
+                                }
+                                else
+                                {
+                                    <div class="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                                        <div class="space-y-3">
+                                            @foreach (var report in ActiveTitleReports)
+                                            {
+                                                var isSelected = report.Id == SelectedTitleReportId;
+                                                <button class="w-full rounded-[1.1rem] border px-4 py-4 text-left transition @(isSelected ? "border-cyan-300/45 bg-cyan-300/10 text-cyan-50" : "border-white/10 bg-black/15 text-slate-100 hover:border-cyan-300/35")"
+                                                        type="button"
+                                                        @onclick="() => SelectTitleReportAsync(report.Id)">
+                                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                                        <div class="text-sm font-semibold text-white">@report.TitleDisplayName</div>
+                                                        <div class="text-[0.65rem] uppercase tracking-[0.16em] text-cyan-100/75">@report.Status</div>
+                                                    </div>
+                                                    <p class="mt-3 text-sm leading-6 text-slate-300">@report.Reason</p>
+                                                </button>
+                                            }
+                                        </div>
+
+                                        <div class="rounded-[1.25rem] border border-white/10 bg-black/15 p-5">
+                                            @if (SelectedTitleReportDetail is null)
+                                            {
+                                                <div class="text-sm text-slate-300">Select a report to review the thread.</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/75">@SelectedTitleReportDetail.Report.Status</div>
+                                                <h3 class="mt-2 text-2xl font-semibold text-white">@SelectedTitleReportDetail.Report.TitleDisplayName</h3>
+                                                <p class="mt-3 text-sm leading-7 text-slate-300">@SelectedTitleReportDetail.Report.Reason</p>
+
+                                                <div class="mt-5 space-y-3">
+                                                    @foreach (var message in SelectedTitleReportDetail.Messages.OrderBy(candidate => candidate.CreatedAt))
+                                                    {
+                                                        <section class="rounded-[1rem] border border-white/10 bg-slate-950/35 px-4 py-3">
+                                                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                                                <div class="text-sm font-semibold text-white">@FormatReportActorName(message.AuthorDisplayName, message.AuthorUserName, message.AuthorEmail, message.AuthorSubject)</div>
+                                                                <div class="text-[0.65rem] uppercase tracking-[0.16em] text-cyan-100/70">@message.AuthorRole</div>
+                                                            </div>
+                                                            <div class="mt-2 text-xs uppercase tracking-[0.16em] text-slate-500">@FormatTimestamp(message.CreatedAt)</div>
+                                                            <p class="mt-3 text-sm leading-7 text-slate-300">@message.Message</p>
+                                                        </section>
+                                                    }
+                                                </div>
+
+                                                <label class="mt-5 block text-sm text-slate-300">
+                                                    Reply to moderation
+                                                    <textarea class="mt-2 min-h-28 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                                              @bind="TitleReportReplyDraft"
+                                                              @bind:event="oninput"
+                                                              placeholder="Answer the moderator or provide additional context."></textarea>
+                                                </label>
+
+                                                <div class="mt-6 flex flex-wrap gap-3">
+                                                    <button class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                                            type="button"
+                                                            @onclick="SendDeveloperTitleReportReplyAsync"
+                                                            disabled="@(IsMutatingTitleReports || string.IsNullOrWhiteSpace(TitleReportReplyDraft))">
+                                                        @(IsMutatingTitleReports ? "Sending..." : "Send reply")
+                                                    </button>
+                                                    <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-slate-100"
+                                                       href="@($"/browse/{SelectedTitleReportDetail.Report.StudioSlug}/{SelectedTitleReportDetail.Report.TitleSlug}")">
+                                                        Open public page
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
                         }
                     }
                     else if (ActiveDomain == DevelopDomain.Releases)
@@ -665,9 +758,15 @@
 
     private readonly Dictionary<Guid, IReadOnlyList<TitleIntegrationBinding>> titleBindings = [];
 
+    private readonly Dictionary<Guid, IReadOnlyList<TitleReportSummary>> titleReports = [];
+
+    private readonly Dictionary<Guid, TitleReportDetail> titleReportDetails = [];
+
     private Guid? ActiveStudioId { get; set; }
 
     private Guid? ActiveTitleId { get; set; }
+
+    private Guid? SelectedTitleReportId { get; set; }
 
     private DevelopDomain ActiveDomain { get; set; } = DevelopDomain.Studios;
 
@@ -676,12 +775,21 @@
     private bool IsBusy { get; set; }
 
     private bool IsSubmitting { get; set; }
+    private bool IsMutatingTitleReports { get; set; }
 
     private string? ErrorMessage { get; set; }
 
     private string? StudioStatusMessage { get; set; }
 
     private bool StudioStatusIsError { get; set; }
+    private string? TitleReportStatusMessage { get; set; }
+    private bool TitleReportStatusIsError { get; set; }
+    private string TitleReportReplyDraft { get; set; } = string.Empty;
+    private bool HasAppliedInitialRouteState { get; set; }
+    private DevelopDomain? RequestedDomain { get; set; }
+    private string? RequestedWorkflow { get; set; }
+    private Guid? RequestedTitleId { get; set; }
+    private Guid? RequestedReportId { get; set; }
 
     private bool IsStudioMutationInFlight { get; set; }
 
@@ -771,8 +879,21 @@
                 ? bindings
                 : [];
 
+    private IReadOnlyList<TitleReportSummary> ActiveTitleReports =>
+        ActiveTitleId is null
+            ? []
+            : titleReports.TryGetValue(ActiveTitleId.Value, out var reports)
+                ? reports
+                : [];
+
+    private TitleReportDetail? SelectedTitleReportDetail =>
+        SelectedTitleReportId is not null && titleReportDetails.TryGetValue(SelectedTitleReportId.Value, out var detail)
+            ? detail
+            : null;
+
     protected override async Task OnInitializedAsync()
     {
+        CaptureRequestedRouteState();
         await LoadBaselineAsync();
     }
 
@@ -788,6 +909,7 @@
             if (HasDeveloperAccess)
             {
                 await EnsureDomainDataAsync(ActiveDomain, forceRefresh: true);
+                await ApplyRequestedRouteStateAsync();
             }
         }
         catch (Exception exception)
@@ -883,6 +1005,11 @@
                 await EnsureTitlesAsync(forceRefresh);
             }
 
+            if (domain is DevelopDomain.Titles)
+            {
+                await EnsureTitleReportsAsync(forceRefresh);
+            }
+
             if (domain is DevelopDomain.Releases)
             {
                 await EnsureReleasesAsync(forceRefresh);
@@ -947,6 +1074,29 @@
             : response.Titles.FirstOrDefault()?.Id;
     }
 
+    private async Task EnsureTitleReportsAsync(bool forceRefresh)
+    {
+        if (ActiveTitleId is null)
+        {
+            SelectedTitleReportId = null;
+            return;
+        }
+
+        if (!forceRefresh && titleReports.ContainsKey(ActiveTitleId.Value))
+        {
+            return;
+        }
+
+        var response = await ApiClient.GetDeveloperTitleReportsAsync(ActiveTitleId.Value);
+        titleReports[ActiveTitleId.Value] = response.Reports.OrderByDescending(candidate => candidate.UpdatedAt).ToArray();
+        SelectedTitleReportId = response.Reports.FirstOrDefault()?.Id;
+
+        if (SelectedTitleReportId is not null)
+        {
+            await EnsureSelectedTitleReportDetailAsync(forceRefresh: true);
+        }
+    }
+
     private async Task EnsureReleasesAsync(bool forceRefresh)
     {
         if (ActiveTitleId is null)
@@ -995,6 +1145,69 @@
         titleBindings[ActiveTitleId.Value] = response.IntegrationBindings;
     }
 
+    private async Task EnsureSelectedTitleReportDetailAsync(bool forceRefresh)
+    {
+        if (ActiveTitleId is null || SelectedTitleReportId is null)
+        {
+            return;
+        }
+
+        if (!forceRefresh && titleReportDetails.ContainsKey(SelectedTitleReportId.Value))
+        {
+            return;
+        }
+
+        var detail = await ApiClient.GetDeveloperTitleReportAsync(ActiveTitleId.Value, SelectedTitleReportId.Value);
+        if (detail is not null)
+        {
+            titleReportDetails[detail.Report.Id] = detail;
+        }
+    }
+
+    private async Task SelectTitleReportAsync(Guid reportId)
+    {
+        SelectedTitleReportId = reportId;
+        TitleReportReplyDraft = string.Empty;
+        TitleReportStatusMessage = null;
+        TitleReportStatusIsError = false;
+        await EnsureSelectedTitleReportDetailAsync(forceRefresh: true);
+    }
+
+    private async Task SendDeveloperTitleReportReplyAsync()
+    {
+        if (ActiveTitleId is null || SelectedTitleReportId is null || string.IsNullOrWhiteSpace(TitleReportReplyDraft) || IsMutatingTitleReports)
+        {
+            return;
+        }
+
+        IsMutatingTitleReports = true;
+        TitleReportStatusMessage = null;
+
+        try
+        {
+            var response = await ApiClient.AddDeveloperTitleReportMessageAsync(
+                ActiveTitleId.Value,
+                SelectedTitleReportId.Value,
+                new AddTitleReportMessageRequest(TitleReportReplyDraft.Trim()));
+
+            titleReportDetails[response.Report.Report.Id] = response.Report;
+            titleReports[ActiveTitleId.Value] = ActiveTitleReports
+                .Select(candidate => candidate.Id == response.Report.Report.Id ? response.Report.Report : candidate)
+                .OrderByDescending(candidate => candidate.UpdatedAt)
+                .ToArray();
+            TitleReportReplyDraft = string.Empty;
+            SetTitleReportStatus("Reply sent to moderation.", isError: false);
+        }
+        catch (Exception exception)
+        {
+            SetTitleReportStatus($"Send reply failed: {exception.Message}", isError: true);
+        }
+        finally
+        {
+            IsMutatingTitleReports = false;
+        }
+    }
+
     private async Task OnActiveStudioChanged(ChangeEventArgs args)
     {
         if (!Guid.TryParse(args.Value?.ToString(), out var studioId))
@@ -1021,7 +1234,18 @@
         }
 
         ActiveTitleId = titleId;
+        SelectedTitleReportId = null;
         await EnsureDomainDataAsync(ActiveDomain);
+    }
+
+    private async Task HandleNewTitleCreatedAsync(Guid titleId)
+    {
+        await EnsureTitlesAsync(forceRefresh: true);
+        ActiveTitleId = titleId;
+        SelectedTitleReportId = null;
+        await EnsureTitleReportsAsync(forceRefresh: true);
+        ActiveWorkflow = "titles-overview";
+        SetStudioStatus("Title created. Continue in Title Overview.", isError: false);
     }
 
     private void SelectStudioForSettings(Guid studioId)
@@ -1438,6 +1662,105 @@
         StudioStatusIsError = isError;
     }
 
+    private void SetTitleReportStatus(string message, bool isError)
+    {
+        TitleReportStatusMessage = message;
+        TitleReportStatusIsError = isError;
+    }
+
+    private void CaptureRequestedRouteState()
+    {
+        var query = QueryHelpers.ParseQuery(new Uri(NavigationManager.Uri).Query);
+        RequestedDomain = query.TryGetValue("domain", out var domainValue) && TryParseDevelopDomain(domainValue.ToString(), out var domain)
+            ? domain
+            : null;
+        RequestedWorkflow = query.TryGetValue("workflow", out var workflowValue)
+            ? workflowValue.ToString()
+            : null;
+        RequestedTitleId = query.TryGetValue("titleId", out var titleIdValue) && Guid.TryParse(titleIdValue.ToString(), out var titleId)
+            ? titleId
+            : null;
+        RequestedReportId = query.TryGetValue("reportId", out var reportIdValue) && Guid.TryParse(reportIdValue.ToString(), out var reportId)
+            ? reportId
+            : null;
+    }
+
+    private async Task ApplyRequestedRouteStateAsync()
+    {
+        if (HasAppliedInitialRouteState || !HasDeveloperAccess)
+        {
+            return;
+        }
+
+        HasAppliedInitialRouteState = true;
+
+        if (RequestedDomain is { } requestedDomain)
+        {
+            ActiveDomain = requestedDomain;
+            ActiveWorkflow = GetWorkflows(requestedDomain).First().Key;
+            await EnsureDomainDataAsync(requestedDomain);
+        }
+
+        if (!string.IsNullOrWhiteSpace(RequestedWorkflow) &&
+            GetWorkflows(ActiveDomain).Any(candidate => string.Equals(candidate.Key, RequestedWorkflow, StringComparison.Ordinal)))
+        {
+            ActiveWorkflow = RequestedWorkflow;
+        }
+
+        if (RequestedTitleId is { } requestedTitleId)
+        {
+            foreach (var studio in Studios)
+            {
+                ActiveStudioId = studio.Id;
+                await EnsureTitlesAsync(forceRefresh: false);
+                if (studioTitles.TryGetValue(studio.Id, out var titles) && titles.Any(candidate => candidate.Id == requestedTitleId))
+                {
+                    ActiveTitleId = requestedTitleId;
+                    break;
+                }
+            }
+        }
+
+        if (ActiveDomain is DevelopDomain.Titles or DevelopDomain.Releases or DevelopDomain.Publishing)
+        {
+            await EnsureDomainDataAsync(ActiveDomain);
+        }
+
+        if (RequestedReportId is { } requestedReportId && ActiveTitleId is not null)
+        {
+            ActiveDomain = DevelopDomain.Titles;
+            ActiveWorkflow = "titles-reports";
+            await EnsureDomainDataAsync(DevelopDomain.Titles, forceRefresh: true);
+            if (ActiveTitleReports.Any(candidate => candidate.Id == requestedReportId))
+            {
+                SelectedTitleReportId = requestedReportId;
+                await EnsureSelectedTitleReportDetailAsync(forceRefresh: true);
+            }
+        }
+    }
+
+    private static bool TryParseDevelopDomain(string? value, out DevelopDomain domain)
+    {
+        switch (value?.Trim().ToLowerInvariant())
+        {
+            case "studios":
+                domain = DevelopDomain.Studios;
+                return true;
+            case "titles":
+                domain = DevelopDomain.Titles;
+                return true;
+            case "releases":
+                domain = DevelopDomain.Releases;
+                return true;
+            case "publishing":
+                domain = DevelopDomain.Publishing;
+                return true;
+            default:
+                domain = default;
+                return false;
+        }
+    }
+
     private string GetStudioStatusClass() =>
         StudioStatusIsError
             ? "border-rose-300/40 bg-rose-400/10 text-rose-100"
@@ -1467,6 +1790,29 @@
         return string.Join(" ", tokens);
     }
 
+    private static string FormatReportActorName(string? displayName, string? userName, string? email, string subject)
+    {
+        if (!string.IsNullOrWhiteSpace(displayName) && !string.IsNullOrWhiteSpace(userName))
+        {
+            return $"{displayName} ({userName})";
+        }
+
+        if (!string.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            return userName;
+        }
+
+        return !string.IsNullOrWhiteSpace(email) ? email : subject;
+    }
+
+    private static string FormatTimestamp(DateTime timestamp) =>
+        timestamp.ToLocalTime().ToString("MMM d, yyyy h:mm tt");
+
     private bool HasActiveDomainData() =>
         ActiveDomain switch
         {
@@ -1495,7 +1841,9 @@
         ],
         DevelopDomain.Titles =>
         [
-            new("titles-overview", "Title Overview")
+            new("titles-overview", "Title Overview"),
+            new("titles-create", "Create Title"),
+            new("titles-reports", "Reported Titles")
         ],
         DevelopDomain.Releases =>
         [

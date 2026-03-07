@@ -1,4 +1,4 @@
-# board_third-party-lib_frontend
+# board-enthusiasts_frontend
 
 A frontend interface for Board Third Party Library users to browse the public catalog, use authenticated player routes, and manage developer studios and titles once developer access is enabled.
 

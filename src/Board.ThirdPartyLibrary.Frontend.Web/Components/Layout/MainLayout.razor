@@ -6,9 +6,9 @@
 @inject NavigationManager NavigationManager
 
 <div class="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top_left,_rgba(243,154,46,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(77,117,244,0.18),_transparent_24%),radial-gradient(circle_at_top,_rgba(255,251,240,0.08),_transparent_40%),linear-gradient(180deg,_#17151a_0%,_#1d1a20_52%,_#151318_100%)] text-slate-100">
-    @if (IsUserMenuOpen)
+    @if (IsUserMenuOpen || IsNotificationsOpen)
     {
-        <button class="fixed inset-0 z-40 cursor-default bg-transparent" type="button" aria-label="Close account menu" @onclick="CloseUserMenu"></button>
+        <button class="fixed inset-0 z-40 cursor-default bg-transparent" type="button" aria-label="Close navigation menus" @onclick="CloseOverlays"></button>
     }
 
     <header class="sticky top-0 z-50 border-b border-white/10 bg-[#17151a]/78 backdrop-blur">
@@ -44,6 +44,83 @@
                 </a>
                 <AuthorizeView>
                     <Authorized>
+                        <div class="relative">
+                            <button class="relative inline-flex size-11 items-center justify-center rounded-full border border-white/15 text-slate-200 transition hover:border-cyan-300/60 hover:text-cyan-100"
+                                    type="button"
+                                    aria-label="Open notifications"
+                                    @onclick="ToggleNotificationsAsync">
+                                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 17a2.5 2.5 0 0 0 5 0"></path>
+                                </svg>
+                                @if (UnreadNotificationCount > 0)
+                                {
+                                    <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-amber-300 px-1.5 text-[0.62rem] font-black leading-none text-slate-950">
+                                        @GetUnreadNotificationBadgeText()
+                                    </span>
+                                }
+                            </button>
+
+                            @if (IsNotificationsOpen)
+                            {
+                                <section class="absolute right-0 z-50 mt-3 w-[min(92vw,24rem)] overflow-hidden rounded-[1.5rem] border border-white/15 bg-[#111017] shadow-[0_28px_70px_rgba(0,0,0,0.48)]">
+                                    <div class="flex items-center justify-between gap-3 p-4">
+                                        <div>
+                                            <div class="text-sm font-semibold text-white">Notifications</div>
+                                            <div class="text-xs text-slate-400">@GetNotificationHeaderText()</div>
+                                        </div>
+                                        @if (UnreadNotificationCount > 0)
+                                        {
+                                            <div class="rounded-full border border-amber-200/30 bg-amber-300/15 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-amber-100">@UnreadNotificationCount unread</div>
+                                        }
+                                    </div>
+                                    <div class="border-t border-white/10"></div>
+
+                                    @if (IsLoadingNotifications)
+                                    {
+                                        <div class="space-y-3 p-4">
+                                            <div class="h-14 animate-pulse rounded-[1rem] bg-white/10"></div>
+                                            <div class="h-14 animate-pulse rounded-[1rem] bg-white/10"></div>
+                                            <div class="h-14 animate-pulse rounded-[1rem] bg-white/10"></div>
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(NotificationErrorMessage))
+                                    {
+                                        <div class="p-4 text-sm leading-7 text-rose-100">@NotificationErrorMessage</div>
+                                    }
+                                    else if (Notifications.Count == 0)
+                                    {
+                                        <div class="p-4 text-sm leading-7 text-slate-300">No notifications yet.</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="max-h-[28rem] overflow-y-auto p-2">
+                                            @foreach (var notification in Notifications)
+                                            {
+                                                <button class="block w-full rounded-[1rem] border px-3 py-3 text-left transition @(notification.IsRead ? "border-transparent text-slate-300 hover:bg-white/5" : "border-cyan-300/20 bg-cyan-300/8 text-slate-100 hover:border-cyan-300/35 hover:bg-cyan-300/12")"
+                                                        type="button"
+                                                        @onclick="() => OpenNotificationAsync(notification)">
+                                                    <div class="flex items-start justify-between gap-3">
+                                                        <div class="min-w-0">
+                                                            <div class="truncate text-sm font-semibold text-white">@notification.Title</div>
+                                                            <div class="mt-1 text-xs uppercase tracking-[0.16em] text-cyan-100/70">@FormatNotificationCategory(notification.Category)</div>
+                                                        </div>
+                                                        @if (!notification.IsRead)
+                                                        {
+                                                            <span class="mt-1 inline-flex size-2.5 shrink-0 rounded-full bg-amber-300"></span>
+                                                        }
+                                                    </div>
+                                                    <div class="mt-2 text-sm text-slate-300" style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;">
+                                                        @notification.Body
+                                                    </div>
+                                                    <div class="mt-2 text-xs text-slate-500">@FormatNotificationTimestamp(notification.CreatedAt)</div>
+                                                </button>
+                                            }
+                                        </div>
+                                    }
+                                </section>
+                            }
+                        </div>
                         <div class="relative">
                             <button class="inline-flex size-11 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-slate-900/60 text-sm font-bold text-slate-100 transition hover:border-cyan-300/60 hover:text-cyan-100" type="button" aria-label="Open account menu" @onclick="ToggleUserMenu">
                                 @if (!string.IsNullOrWhiteSpace(AvatarImageSource))
@@ -81,6 +158,7 @@
                                         <button class="block w-full rounded-xl px-3 py-2 text-left transition hover:bg-white/10" type="button" @onclick='() => NavigateToAndCloseUserMenu("/player?workflow=account-profile")'>Profile</button>
                                         <button class="block w-full rounded-xl px-3 py-2 text-left transition hover:bg-white/10" type="button" @onclick='() => NavigateToAndCloseUserMenu("/player")'>My Games</button>
                                         <button class="block w-full rounded-xl px-3 py-2 text-left transition hover:bg-white/10" type="button" @onclick='() => NavigateToAndCloseUserMenu("/player/wishlist")'>Wishlist</button>
+                                        <button class="block w-full rounded-xl px-3 py-2 text-left transition hover:bg-white/10" type="button" @onclick='() => NavigateToAndCloseUserMenu("/player?workflow=reported-titles")'>Reported Titles</button>
                                     </nav>
 
                                     @if (ShowDeveloperSection)
@@ -147,6 +225,7 @@
                     <Authorized>
                         <a class="transition hover:text-cyan-200" href="/player">Play</a>
                         <a class="transition hover:text-cyan-200" href="/player/wishlist">Wishlist</a>
+                        <a class="transition hover:text-cyan-200" href="/player?workflow=reported-titles">Reported Titles</a>
                         <a class="transition hover:text-cyan-200" href="/develop">Develop</a>
                         @if (ShowModerateSection)
                         {
@@ -177,6 +256,10 @@
     private DeveloperEnrollment? EnrollmentState { get; set; }
 
     private bool IsUserMenuOpen { get; set; }
+    private bool IsNotificationsOpen { get; set; }
+    private bool IsLoadingNotifications { get; set; }
+    private string? NotificationErrorMessage { get; set; }
+    private IReadOnlyList<UserNotification> Notifications { get; set; } = [];
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -193,6 +276,7 @@
                 CurrentProfile = await ApiClient.GetCurrentUserProfileAsync();
                 UserProfileState.SetProfile(CurrentProfile);
                 EnrollmentState = (await ApiClient.GetDeveloperEnrollmentAsync()).DeveloperEnrollment;
+                await LoadNotificationsAsync();
             }
             catch
             {
@@ -232,6 +316,7 @@
     private bool ShowDeveloperSection => IsDeveloperRole;
 
     private bool ShowModerateSection => CurrentUser.HasRole("moderator");
+    private int UnreadNotificationCount => Notifications.Count(candidate => !candidate.IsRead);
 
     private string AvatarInitials => string.IsNullOrWhiteSpace(CurrentProfile?.Initials)
         ? "U"
@@ -269,14 +354,126 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private void ToggleUserMenu() => IsUserMenuOpen = !IsUserMenuOpen;
+    private async Task ToggleNotificationsAsync()
+    {
+        IsUserMenuOpen = false;
+        IsNotificationsOpen = !IsNotificationsOpen;
+        if (IsNotificationsOpen)
+        {
+            await LoadNotificationsAsync();
+        }
+    }
+
+    private void ToggleUserMenu()
+    {
+        IsNotificationsOpen = false;
+        IsUserMenuOpen = !IsUserMenuOpen;
+    }
 
     private void CloseUserMenu() => IsUserMenuOpen = false;
+
+    private void CloseOverlays()
+    {
+        IsUserMenuOpen = false;
+        IsNotificationsOpen = false;
+    }
 
     private void NavigateToAndCloseUserMenu(string href)
     {
         CloseUserMenu();
         NavigationManager.NavigateTo(href);
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        if (CurrentUser is null)
+        {
+            Notifications = [];
+            return;
+        }
+
+        IsLoadingNotifications = true;
+        NotificationErrorMessage = null;
+
+        try
+        {
+            Notifications = (await ApiClient.GetCurrentUserNotificationsAsync()).Notifications
+                .OrderByDescending(candidate => candidate.CreatedAt)
+                .ToArray();
+        }
+        catch (Exception exception)
+        {
+            NotificationErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsLoadingNotifications = false;
+        }
+    }
+
+    private async Task OpenNotificationAsync(UserNotification notification)
+    {
+        if (!notification.IsRead)
+        {
+            try
+            {
+                var response = await ApiClient.MarkCurrentUserNotificationReadAsync(notification.Id);
+                Notifications = Notifications
+                    .Select(candidate => candidate.Id == response.Notification.Id ? response.Notification : candidate)
+                    .OrderByDescending(candidate => candidate.CreatedAt)
+                    .ToArray();
+            }
+            catch
+            {
+                // Keep navigation resilient even if the read mutation fails.
+            }
+        }
+
+        IsNotificationsOpen = false;
+        if (!string.IsNullOrWhiteSpace(notification.ActionUrl))
+        {
+            NavigationManager.NavigateTo(notification.ActionUrl);
+        }
+    }
+
+    private string GetUnreadNotificationBadgeText() => UnreadNotificationCount > 9 ? "9+" : UnreadNotificationCount.ToString();
+
+    private string GetNotificationHeaderText() =>
+        Notifications.Count == 0
+            ? "No recent activity"
+            : $"{Notifications.Count} recent item{(Notifications.Count == 1 ? string.Empty : "s")}";
+
+    private static string FormatNotificationCategory(string category) =>
+        string.Equals(category, "title_report", StringComparison.OrdinalIgnoreCase)
+            ? "Title Report"
+            : string.IsNullOrWhiteSpace(category)
+                ? "Notification"
+                : category.Replace('_', ' ').Trim();
+
+    private static string FormatNotificationTimestamp(DateTime timestamp)
+    {
+        var elapsed = DateTime.UtcNow - timestamp.ToUniversalTime();
+        if (elapsed.TotalMinutes < 1)
+        {
+            return "Just now";
+        }
+
+        if (elapsed.TotalHours < 1)
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalMinutes)}m ago";
+        }
+
+        if (elapsed.TotalDays < 1)
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalHours)}h ago";
+        }
+
+        if (elapsed.TotalDays < 7)
+        {
+            return $"{Math.Max(1, (int)elapsed.TotalDays)}d ago";
+        }
+
+        return timestamp.ToLocalTime().ToString("MMM d, yyyy h:mm tt");
     }
 
     private static string FirstNonEmpty(params string?[] values) =>

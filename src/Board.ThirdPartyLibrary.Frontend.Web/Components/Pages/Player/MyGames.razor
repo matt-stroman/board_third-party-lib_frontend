@@ -67,16 +67,41 @@
                     {
                         <h2 class="text-2xl font-semibold text-white">My Games</h2>
                         <p class="mt-3 text-sm leading-7 text-slate-300">
-                            Your library titles will appear here.
+                            Titles you marked as owned appear here.
                         </p>
-                        <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
-                            <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Library</div>
-                            <div class="mt-2 text-lg font-semibold text-white">No games yet</div>
-                            <p class="mt-2 text-sm text-slate-300">Browse games to get started.</p>
-                        </div>
-                        <div class="mt-6">
-                            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
-                        </div>
+                        @if (IsLoadingCollections)
+                        {
+                            <div class="mt-6 h-40 animate-pulse rounded-[1rem] bg-white/10"></div>
+                        }
+                        else if (LibraryTitles.Count == 0)
+                        {
+                            <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Library</div>
+                                <div class="mt-2 text-lg font-semibold text-white">No games yet</div>
+                                <p class="mt-2 text-sm text-slate-300">Browse games to get started.</p>
+                            </div>
+                            <div class="mt-6">
+                                <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                @foreach (var title in LibraryTitles)
+                                {
+                                    <a class="rounded-[1.15rem] border border-white/10 bg-black/15 p-4 transition hover:-translate-y-1 hover:border-cyan-300/35"
+                                       href="@($"/browse/{title.StudioSlug}/{title.Slug}")">
+                                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">@FormatContentKind(title.ContentKind)</div>
+                                        <div class="mt-2 text-lg font-semibold text-white">@title.DisplayName</div>
+                                        <div class="mt-2 text-sm text-slate-300">@title.ShortDescription</div>
+                                        <div class="mt-4 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cyan-100/80">
+                                            <span class="rounded-full border border-white/15 px-3 py-1">@title.PlayerCountDisplay</span>
+                                            <span class="rounded-full border border-white/15 px-3 py-1">@title.AgeDisplay</span>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
                     }
                     else if (ActiveWorkflow == "library-wishlist")
                     {
@@ -84,13 +109,154 @@
                         <p class="mt-3 text-sm leading-7 text-slate-300">
                             Save titles you want to come back to later.
                         </p>
-                        <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
-                            <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Wishlist</div>
-                            <div class="mt-2 text-lg font-semibold text-white">No wishlist items yet</div>
-                            <p class="mt-2 text-sm text-slate-300">Add games from Browse to track them here.</p>
-                        </div>
-                        <div class="mt-6">
-                            <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
+                        @if (IsLoadingCollections)
+                        {
+                            <div class="mt-6 h-40 animate-pulse rounded-[1rem] bg-white/10"></div>
+                        }
+                        else if (WishlistTitles.Count == 0)
+                        {
+                            <div class="mt-6 rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Wishlist</div>
+                                <div class="mt-2 text-lg font-semibold text-white">No wishlist items yet</div>
+                                <p class="mt-2 text-sm text-slate-300">Add games from Browse to track them here.</p>
+                            </div>
+                            <div class="mt-6">
+                                <a class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950" href="/browse">Browse</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                @foreach (var title in WishlistTitles)
+                                {
+                                    <a class="rounded-[1.15rem] border border-white/10 bg-black/15 p-4 transition hover:-translate-y-1 hover:border-cyan-300/35"
+                                       href="@($"/browse/{title.StudioSlug}/{title.Slug}")">
+                                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">@FormatContentKind(title.ContentKind)</div>
+                                        <div class="mt-2 text-lg font-semibold text-white">@title.DisplayName</div>
+                                        <div class="mt-2 text-sm text-slate-300">@title.ShortDescription</div>
+                                        <div class="mt-4 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-cyan-100/80">
+                                            <span class="rounded-full border border-white/15 px-3 py-1">@title.PlayerCountDisplay</span>
+                                            <span class="rounded-full border border-white/15 px-3 py-1">@title.AgeDisplay</span>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (ActiveWorkflow == "reported-titles")
+                    {
+                        <h2 class="text-2xl font-semibold text-white">Reported Titles</h2>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            Track moderator follow-up on your reported titles and send additional details when needed.
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(ReportedTitleStatusMessage))
+                        {
+                            <div class="mt-4 rounded-[1rem] border px-4 py-3 text-sm @(ReportedTitleStatusIsError ? "border-rose-300/35 bg-rose-500/10 text-rose-100" : "border-cyan-300/25 bg-cyan-300/10 text-cyan-50")">
+                                @ReportedTitleStatusMessage
+                            </div>
+                        }
+
+                        <div class="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                            <div class="space-y-3">
+                                @if (IsLoadingReportedTitles)
+                                {
+                                    <div class="h-36 animate-pulse rounded-[1rem] bg-white/10"></div>
+                                }
+                                else if (PlayerReportedTitles.Count == 0)
+                                {
+                                    <div class="rounded-[1rem] border border-white/10 bg-black/15 p-4">
+                                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Reports</div>
+                                        <div class="mt-2 text-lg font-semibold text-white">No reported titles yet</div>
+                                        <p class="mt-2 text-sm text-slate-300">Use the flag action on a title page to open a moderation report.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @foreach (var report in PlayerReportedTitles)
+                                    {
+                                        var isSelected = report.Id == SelectedReportedTitleId;
+                                        <button class="block w-full rounded-[1rem] border px-4 py-4 text-left transition @(isSelected ? "border-cyan-300/45 bg-cyan-300/10 text-cyan-50" : "border-white/10 bg-black/15 text-slate-100 hover:border-cyan-300/35")"
+                                                type="button"
+                                                @onclick="() => SelectReportedTitleAsync(report.Id)">
+                                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                                <div class="text-sm font-semibold text-white">@report.TitleDisplayName</div>
+                                                <div class="text-[0.65rem] uppercase tracking-[0.16em] text-cyan-100/75">@report.Status.Replace('_', ' ')</div>
+                                            </div>
+                                            <div class="mt-2 text-xs uppercase tracking-[0.16em] text-slate-400">@report.StudioSlug</div>
+                                            <p class="mt-3 text-sm leading-6 text-slate-300">@report.Reason</p>
+                                        </button>
+                                    }
+                                }
+                            </div>
+
+                            <div class="rounded-[1rem] border border-white/10 bg-black/15 p-5">
+                                @if (SelectedReportedTitleDetail is null)
+                                {
+                                    <div class="text-sm text-slate-300">Select a reported title to review moderator updates.</div>
+                                }
+                                else
+                                {
+                                    <div class="flex flex-wrap items-start justify-between gap-4">
+                                        <div>
+                                            <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/75">@SelectedReportedTitleDetail.Report.Status.Replace('_', ' ')</div>
+                                            <h3 class="mt-2 text-2xl font-semibold text-white">@SelectedReportedTitleDetail.Report.TitleDisplayName</h3>
+                                            <div class="mt-2 text-sm text-slate-300">@SelectedReportedTitleDetail.Report.Reason</div>
+                                        </div>
+                                        <a class="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-100 transition hover:border-cyan-300/60 hover:text-cyan-100"
+                                           href="@($"/browse/{SelectedReportedTitleDetail.Report.StudioSlug}/{SelectedReportedTitleDetail.Report.TitleSlug}")">
+                                            Open title
+                                        </a>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(SelectedReportedTitleDetail.ResolutionNote))
+                                    {
+                                        <div class="mt-5 rounded-[1rem] border border-amber-200/35 bg-amber-300/10 px-4 py-3 text-sm leading-7 text-amber-50">
+                                            @SelectedReportedTitleDetail.ResolutionNote
+                                        </div>
+                                    }
+
+                                    <div class="mt-6 space-y-3">
+                                        @if (SelectedReportedTitleDetail.Messages.Count == 0)
+                                        {
+                                            <div class="text-sm text-slate-300">No moderator messages yet.</div>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var message in SelectedReportedTitleDetail.Messages.OrderBy(candidate => candidate.CreatedAt))
+                                            {
+                                                var isModerator = string.Equals(message.AuthorRole, "moderator", StringComparison.OrdinalIgnoreCase);
+                                                <div class="rounded-[1rem] border px-4 py-3 @(isModerator ? "border-cyan-300/25 bg-cyan-300/10" : "border-white/10 bg-black/10")">
+                                                    <div class="text-xs uppercase tracking-[0.16em] text-cyan-100/75">@message.AuthorRole</div>
+                                                    <div class="mt-2 text-sm leading-7 text-slate-100">@message.Message</div>
+                                                    <div class="mt-2 text-xs text-slate-400">@message.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+
+                                    @if (SelectedReportedTitleDetail.Report.Status is not "validated" and not "invalidated")
+                                    {
+                                        <div class="mt-6">
+                                            <label class="block text-sm text-slate-300">
+                                                Reply to moderation
+                                                <textarea class="mt-2 min-h-32 w-full rounded-[1rem] border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100"
+                                                          @bind="ReportedTitleReplyDraft"
+                                                          @bind:event="oninput"
+                                                          placeholder="Add more context or answer the moderator's questions."></textarea>
+                                            </label>
+                                            <div class="mt-4">
+                                                <button class="rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        type="button"
+                                                        @onclick="SendReportedTitleReplyAsync"
+                                                        disabled="@(IsMutatingReportedTitles || string.IsNullOrWhiteSpace(ReportedTitleReplyDraft))">
+                                                    @(IsMutatingReportedTitles ? "Sending..." : "Send reply")
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
                         </div>
                     }
                     else if (ActiveWorkflow == "account-profile")
@@ -275,13 +441,32 @@
 
     private bool IsRemovingAvatar { get; set; }
 
+    private bool IsLoadingCollections { get; set; }
+    private bool IsLoadingReportedTitles { get; set; }
+    private bool IsMutatingReportedTitles { get; set; }
+
     private PlayerDomain ActiveDomain { get; set; } = PlayerDomain.Library;
 
     private string ActiveWorkflow { get; set; } = "library-games";
 
+    private List<CatalogTitleSummary> LibraryTitles { get; } = [];
+
+    private List<CatalogTitleSummary> WishlistTitles { get; } = [];
+    private List<PlayerTitleReportSummary> PlayerReportedTitles { get; } = [];
+    private Dictionary<Guid, TitleReportDetail> PlayerReportedTitleDetails { get; } = [];
+    private Guid? SelectedReportedTitleId { get; set; }
+    private string ReportedTitleReplyDraft { get; set; } = string.Empty;
+    private string? ReportedTitleStatusMessage { get; set; }
+    private bool ReportedTitleStatusIsError { get; set; }
+    private Guid? RequestedReportedTitleId { get; set; }
+
     private string AvatarInitials => string.IsNullOrWhiteSpace(Profile?.Initials) ? "U" : Profile.Initials;
 
     private string? AvatarSource => Profile?.AvatarDataUrl ?? Profile?.AvatarUrl;
+    private TitleReportDetail? SelectedReportedTitleDetail =>
+        SelectedReportedTitleId is not null && PlayerReportedTitleDetails.TryGetValue(SelectedReportedTitleId.Value, out var detail)
+            ? detail
+            : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -309,6 +494,7 @@
             CurrentUser = await ApiClient.GetCurrentUserAsync();
             EnrollmentState = (await ApiClient.GetDeveloperEnrollmentAsync()).DeveloperEnrollment;
             SetProfile(await ApiClient.GetCurrentUserProfileAsync());
+            await LoadCollectionsAsync();
 
             if (CurrentUser is null)
             {
@@ -345,6 +531,17 @@
                 ActiveWorkflow = "account-settings";
                 return;
             }
+
+            if (string.Equals(workflow, "reported-titles", StringComparison.OrdinalIgnoreCase))
+            {
+                ActiveDomain = PlayerDomain.Library;
+                ActiveWorkflow = "reported-titles";
+                RequestedReportedTitleId = queryParameters.TryGetValue("reportId", out var reportIdValues) && Guid.TryParse(reportIdValues.FirstOrDefault(), out var reportId)
+                    ? reportId
+                    : null;
+                _ = EnsureReportedTitlesForCurrentWorkflowAsync();
+                return;
+            }
         }
 
         if (pathOnly.EndsWith("/wishlist", StringComparison.OrdinalIgnoreCase))
@@ -356,6 +553,7 @@
 
         ActiveDomain = PlayerDomain.Library;
         ActiveWorkflow = "library-games";
+        RequestedReportedTitleId = null;
     }
 
     private void SelectDomain(PlayerDomain domain)
@@ -481,6 +679,139 @@
         }
     }
 
+    private async Task LoadCollectionsAsync()
+    {
+        IsLoadingCollections = true;
+
+        try
+        {
+            var libraryResponse = await ApiClient.GetPlayerLibraryAsync();
+            var wishlistResponse = await ApiClient.GetPlayerWishlistAsync();
+            LibraryTitles.Clear();
+            LibraryTitles.AddRange(libraryResponse.Titles);
+            WishlistTitles.Clear();
+            WishlistTitles.AddRange(wishlistResponse.Titles);
+        }
+        finally
+        {
+            IsLoadingCollections = false;
+        }
+    }
+
+    private async Task EnsureReportedTitlesForCurrentWorkflowAsync()
+    {
+        if (ActiveWorkflow != "reported-titles")
+        {
+            return;
+        }
+
+        await LoadReportedTitlesAsync(forceRefresh: false);
+        if (RequestedReportedTitleId is not null && PlayerReportedTitles.Any(candidate => candidate.Id == RequestedReportedTitleId.Value))
+        {
+            await SelectReportedTitleAsync(RequestedReportedTitleId.Value);
+            RequestedReportedTitleId = null;
+        }
+        else if (SelectedReportedTitleId is null && PlayerReportedTitles.Count > 0)
+        {
+            await SelectReportedTitleAsync(PlayerReportedTitles[0].Id);
+        }
+    }
+
+    private async Task LoadReportedTitlesAsync(bool forceRefresh)
+    {
+        if (!forceRefresh && PlayerReportedTitles.Count > 0)
+        {
+            return;
+        }
+
+        IsLoadingReportedTitles = true;
+        try
+        {
+            var response = await ApiClient.GetPlayerTitleReportsAsync();
+            PlayerReportedTitles.Clear();
+            PlayerReportedTitles.AddRange(response.Reports.OrderByDescending(candidate => candidate.UpdatedAt));
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsLoadingReportedTitles = false;
+        }
+    }
+
+    private async Task SelectReportedTitleAsync(Guid reportId)
+    {
+        SelectedReportedTitleId = reportId;
+        ReportedTitleReplyDraft = string.Empty;
+        ReportedTitleStatusMessage = null;
+        ReportedTitleStatusIsError = false;
+
+        try
+        {
+            var detail = await ApiClient.GetPlayerTitleReportAsync(reportId);
+            if (detail is not null)
+            {
+                PlayerReportedTitleDetails[reportId] = detail;
+            }
+        }
+        catch (Exception exception)
+        {
+            ReportedTitleStatusMessage = exception.Message;
+            ReportedTitleStatusIsError = true;
+        }
+    }
+
+    private async Task SendReportedTitleReplyAsync()
+    {
+        if (SelectedReportedTitleId is null || string.IsNullOrWhiteSpace(ReportedTitleReplyDraft) || IsMutatingReportedTitles)
+        {
+            return;
+        }
+
+        IsMutatingReportedTitles = true;
+        ReportedTitleStatusMessage = null;
+        ReportedTitleStatusIsError = false;
+
+        try
+        {
+            var response = await ApiClient.AddPlayerTitleReportMessageAsync(SelectedReportedTitleId.Value, new AddTitleReportMessageRequest(ReportedTitleReplyDraft.Trim()));
+            PlayerReportedTitleDetails[response.Report.Report.Id] = response.Report;
+            var existingIndex = PlayerReportedTitles.FindIndex(candidate => candidate.Id == response.Report.Report.Id);
+            if (existingIndex >= 0)
+            {
+                PlayerReportedTitles[existingIndex] = MapPlayerReportedTitleSummary(response.Report.Report);
+            }
+            ReportedTitleReplyDraft = string.Empty;
+            ReportedTitleStatusMessage = "Reply sent to moderation.";
+        }
+        catch (Exception exception)
+        {
+            ReportedTitleStatusMessage = exception.Message;
+            ReportedTitleStatusIsError = true;
+        }
+        finally
+        {
+            IsMutatingReportedTitles = false;
+        }
+    }
+
+    private static string FormatContentKind(string contentKind) =>
+        string.Equals(contentKind, "app", StringComparison.OrdinalIgnoreCase) ? "App" : "Game";
+
+    private static PlayerTitleReportSummary MapPlayerReportedTitleSummary(TitleReportSummary summary) =>
+        new(
+            summary.Id,
+            summary.TitleId,
+            summary.StudioSlug,
+            summary.TitleSlug,
+            summary.TitleDisplayName,
+            summary.Status,
+            summary.Reason,
+            summary.CreatedAt,
+            summary.UpdatedAt);
+
     private static string GetDomainLabel(PlayerDomain domain) => domain switch
     {
         PlayerDomain.Library => "Library",
@@ -493,7 +824,8 @@
         PlayerDomain.Library =>
         [
             new("library-games", "My Games"),
-            new("library-wishlist", "Wishlist")
+            new("library-wishlist", "Wishlist"),
+            new("reported-titles", "Reported Titles")
         ],
         PlayerDomain.Account =>
         [
@@ -507,6 +839,7 @@
     {
         "library-games" => "/player",
         "library-wishlist" => "/player/wishlist",
+        "reported-titles" => "/player?workflow=reported-titles",
         "account-profile" => "/player?workflow=account-profile",
         "account-settings" => "/player?workflow=account-settings",
         _ => "/player"

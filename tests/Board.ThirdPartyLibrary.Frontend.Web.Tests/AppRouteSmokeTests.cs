@@ -31,6 +31,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     [InlineData("/studios/stellar-forge", "Back to browse")]
     [InlineData("/player", "My Games")]
     [InlineData("/player/wishlist", "No wishlist items yet")]
+    [InlineData("/player?workflow=reported-titles", "Reported Titles")]
     [InlineData("/browse/stellar-forge/star-blasters", "View on itch.io")]
     [InlineData("/develop", "Stellar Forge")]
     [InlineData("/moderate", "Moderation access unavailable")]
@@ -267,7 +268,8 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         DeveloperEnrollmentResponse? DeveloperEnrollment = null,
         BoardProfile? BoardProfile = null,
         DeveloperStudioListResponse? ManagedStudios = null,
-        ModerationDeveloperListResponse? ModerationDevelopers = null)
+        ModerationDeveloperListResponse? ModerationDevelopers = null,
+        UserNotificationListResponse? Notifications = null)
     {
         public static TestApiData Default { get; } = new(
             CurrentUser: new CurrentUserResponse(
@@ -334,6 +336,19 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         "dev-one",
                         "Developer One",
                         "dev-one@boardtpl.local")
+                ]),
+            Notifications: new UserNotificationListResponse(
+                [
+                    new UserNotification(
+                        Guid.Parse("12121212-1212-1212-1212-121212121212"),
+                        "title_report",
+                        "Developer reply received",
+                        "Developer One replied on Star Blasters.",
+                        "/moderate?workflow=reports-review&reportId=66666666-6666-6666-6666-666666666666",
+                        false,
+                        null,
+                        DateTime.Parse("2026-03-05T10:15:00Z"),
+                        DateTime.Parse("2026-03-05T10:15:00Z"))
                 ]));
     }
 
@@ -351,6 +366,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     "game",
                     "testing",
                     "listed",
+                    true,
                     2,
                     "Star Blasters",
                     "Family space battles in short rounds.",
@@ -372,6 +388,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     "game",
                     "published",
                     "listed",
+                    false,
                     1,
                     "Puzzle Grove",
                     "A quiet co-op puzzle journey.",
@@ -440,6 +457,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     "game",
                     "testing",
                     "listed",
+                    true,
                     2,
                     "Star Blasters",
                     "Family space battles in short rounds.",
@@ -533,6 +551,23 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         public Task<CurrentUserResponse?> GetCurrentUserAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<CurrentUserResponse?>(data.CurrentUser);
 
+        public Task<UserNotificationListResponse> GetCurrentUserNotificationsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(data.Notifications ?? new UserNotificationListResponse([]));
+
+        public Task<UserNotificationResponse> MarkCurrentUserNotificationReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
+        {
+            var notification = (data.Notifications?.Notifications ?? [])
+                .FirstOrDefault(candidate => candidate.Id == notificationId)
+                ?? new UserNotification(notificationId, "title_report", "Notification", "Notification preview", "/develop", true, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow);
+
+            return Task.FromResult(new UserNotificationResponse(notification with
+            {
+                IsRead = true,
+                ReadAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }));
+        }
+
         public Task<UserProfile?> GetCurrentUserProfileAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<UserProfile?>(data.UserProfile ?? new UserProfile(data.CurrentUser.Subject, data.CurrentUser.DisplayName, null, null, null, data.CurrentUser.Email, data.CurrentUser.EmailVerified, null, null, "U", DateTime.UtcNow));
 
@@ -570,6 +605,71 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     AvatarUrl = null,
                     AvatarDataUrl = null
                 }));
+
+        public Task<PlayerTitleListResponse> GetPlayerLibraryAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerTitleListResponse([]));
+
+        public Task<PlayerCollectionMutationResponse> AddTitleToPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerCollectionMutationResponse(titleId, true, false));
+
+        public Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerLibraryAsync(Guid titleId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerCollectionMutationResponse(titleId, false, false));
+
+        public Task<PlayerTitleListResponse> GetPlayerWishlistAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerTitleListResponse([]));
+
+        public Task<PlayerCollectionMutationResponse> AddTitleToPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerCollectionMutationResponse(titleId, true, false));
+
+        public Task<PlayerCollectionMutationResponse> RemoveTitleFromPlayerWishlistAsync(Guid titleId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerCollectionMutationResponse(titleId, false, false));
+
+        public Task<PlayerTitleReportListResponse> GetPlayerTitleReportsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PlayerTitleReportListResponse([]));
+
+        public Task<PlayerTitleReportResponse> CreatePlayerTitleReportAsync(CreatePlayerTitleReportRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new PlayerTitleReportResponse(
+                    new PlayerTitleReportSummary(
+                        Guid.Parse("77777777-7777-7777-7777-777777777777"),
+                        request.TitleId,
+                        "stellar-forge",
+                        "star-blasters",
+                        "Star Blasters",
+                        "open",
+                        request.Reason,
+                        DateTime.Parse("2026-03-05T10:00:00Z"),
+                        DateTime.Parse("2026-03-05T10:00:00Z"))));
+
+        public Task<TitleReportDetail?> GetPlayerTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<TitleReportDetail?>(BuildTitleReportDetail(reportId));
+
+        public Task<TitleReportDetailResponse> AddPlayerTitleReportMessageAsync(Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportDetailResponse(BuildTitleReportDetail(reportId, request.Message, "player", "Player One", "player-123", "player")));
+
+        public Task<TitleReportListResponse> GetModerationTitleReportsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportListResponse([BuildTitleReportSummary()]));
+
+        public Task<TitleReportDetail?> GetModerationTitleReportAsync(Guid reportId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<TitleReportDetail?>(BuildTitleReportDetail(reportId));
+
+        public Task<TitleReportDetailResponse> AddModerationTitleReportMessageAsync(Guid reportId, AddModerationTitleReportMessageRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportDetailResponse(BuildTitleReportDetail(reportId, request.Message, "moderator", "Moderator One", "moderator-123", request.RecipientRole)));
+
+        public Task<TitleReportDetailResponse> ValidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportDetailResponse(BuildTitleReportDetail(reportId, resolutionNote: request.Note, status: "validated")));
+
+        public Task<TitleReportDetailResponse> InvalidateModerationTitleReportAsync(Guid reportId, ModerateTitleReportDecisionRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportDetailResponse(BuildTitleReportDetail(reportId, resolutionNote: request.Note, status: "invalidated")));
+
+        public Task<TitleReportListResponse> GetDeveloperTitleReportsAsync(Guid titleId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportListResponse([BuildTitleReportSummary()]));
+
+        public Task<TitleReportDetail?> GetDeveloperTitleReportAsync(Guid titleId, Guid reportId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<TitleReportDetail?>(BuildTitleReportDetail(reportId));
+
+        public Task<TitleReportDetailResponse> AddDeveloperTitleReportMessageAsync(Guid titleId, Guid reportId, AddTitleReportMessageRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TitleReportDetailResponse(BuildTitleReportDetail(reportId, request.Message, "developer", "Developer One", "developer-123")));
 
         public Task<BoardProfile?> GetBoardProfileAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(data.BoardProfile);
@@ -721,6 +821,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                             "game",
                             "testing",
                             "listed",
+                            true,
                             2,
                             "Star Blasters",
                             "Family space battles in short rounds.",
@@ -1142,6 +1243,84 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
         public Task DeleteTitleIntegrationBindingAsync(Guid titleId, Guid bindingId, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
+
+        private static TitleReportSummary BuildTitleReportSummary(string status = "open") =>
+            new(
+                Guid.Parse("66666666-6666-6666-6666-666666666666"),
+                Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                "stellar-forge",
+                "Stellar Forge",
+                "star-blasters",
+                "Star Blasters",
+                "Family space battles in short rounds.",
+                "Arcade Shooter",
+                2,
+                "player-123",
+                "player-one",
+                "Player One",
+                "player@boardtpl.local",
+                status,
+                "The card art does not match the latest build.",
+                DateTime.Parse("2026-03-05T09:00:00Z"),
+                DateTime.Parse("2026-03-05T10:00:00Z"),
+                status is "validated" or "invalidated" ? DateTime.Parse("2026-03-05T11:00:00Z") : null,
+                2);
+
+        private static TitleReportDetail BuildTitleReportDetail(Guid reportId, string? replyMessage = null, string replyRole = "moderator", string? replyDisplayName = null, string replySubject = "moderator-123", string replyAudience = "developer", string? resolutionNote = null, string status = "open")
+        {
+            var summary = BuildTitleReportSummary(status) with
+            {
+                Id = reportId
+            };
+
+            var messages = new List<TitleReportMessage>
+            {
+                new(
+                    Guid.Parse("88888888-8888-8888-8888-888888888888"),
+                    "moderator-123",
+                    "moderator-one",
+                    "Moderator One",
+                    "moderator@boardtpl.local",
+                    "moderator",
+                    "developer",
+                    "Can you clarify whether the current screenshots still match the shipped content?",
+                    DateTime.Parse("2026-03-05T09:30:00Z")),
+                new(
+                    Guid.Parse("99999999-9999-9999-9999-999999999999"),
+                    "developer-123",
+                    "dev-one",
+                    "Developer One",
+                    "dev-one@boardtpl.local",
+                    "developer",
+                    "developer",
+                    "We replaced those images yesterday and are uploading the corrected media now.",
+                    DateTime.Parse("2026-03-05T09:45:00Z"))
+            };
+
+            if (!string.IsNullOrWhiteSpace(replyMessage))
+            {
+                messages.Add(
+                    new TitleReportMessage(
+                        Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                        replySubject,
+                        replyRole == "developer" ? "dev-one" : "moderator-one",
+                        replyDisplayName,
+                        replyRole == "developer" ? "dev-one@boardtpl.local" : "moderator@boardtpl.local",
+                        replyRole,
+                        replyAudience,
+                        replyMessage,
+                        DateTime.Parse("2026-03-05T10:15:00Z")));
+            }
+
+            return new TitleReportDetail(
+                summary with { MessageCount = messages.Count },
+                resolutionNote,
+                status is "validated" or "invalidated"
+                    ? new TitleReportActor("moderator-123", "moderator-one", "Moderator One", "moderator@boardtpl.local")
+                    : null,
+                messages);
+        }
 
         private static DeveloperTitle BuildDeveloperTitle(
             Guid titleId,

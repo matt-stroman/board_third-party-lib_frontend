@@ -8,11 +8,11 @@
 
 <PageTitle>New Title</PageTitle>
 
-<section class="space-y-6">
-    <section class="app-panel max-w-5xl p-6">
+<section class="@(Embedded ? string.Empty : "space-y-6")">
+    <section class="@(Embedded ? string.Empty : "app-panel max-w-5xl p-6")">
         <h1 class="app-page-title">New Title</h1>
         <p class="mt-4 text-base leading-8 text-slate-300">
-            Create a title and its first metadata revision. New titles always start as Draft and Private, and slug is generated automatically from display name.
+            Create a title and its first metadata revision under <strong class="text-white">@ResolvedStudioDisplayName</strong>. New titles always start as Draft and Private, and slug is generated automatically from display name.
         </p>
 
         @if (!string.IsNullOrWhiteSpace(ErrorMessage))
@@ -140,7 +140,10 @@
             <button class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" type="button" @onclick="TogglePreviewPanel">
                 @(IsPreviewVisible ? "Hide preview" : "Preview title")
             </button>
-            <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop/studios/@StudioId/titles">Back to titles</a>
+            @if (!Embedded)
+            {
+                <a class="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="/develop/studios/@StudioId/titles">Back to titles</a>
+            }
         </div>
 
         @if (IsPreviewVisible)
@@ -202,6 +205,14 @@
 @code {
     [Parameter] public Guid StudioId { get; set; }
 
+    [Parameter] public bool Embedded { get; set; }
+
+    [Parameter] public string? StudioDisplayName { get; set; }
+
+    [Parameter] public bool NavigateOnSuccess { get; set; } = true;
+
+    [Parameter] public EventCallback<Guid> OnCreated { get; set; }
+
     private const string CreateLifecycleStatus = "draft";
 
     private const string CreateVisibility = "private";
@@ -262,6 +273,8 @@
 
     private string GeneratedSlug => SlugGenerator.ToKebabCase(DisplayName, "title");
 
+    private string ResolvedStudioDisplayName => string.IsNullOrWhiteSpace(StudioDisplayName) ? "this studio" : StudioDisplayName;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender || HasRestoredDraft)
@@ -312,9 +325,21 @@
 
             var mediaFailures = await ApplyInitialMediaAsync(response.Title.Id);
             await ClearDraftAsync();
-            NavigationManager.NavigateTo(mediaFailures.Count == 0
-                ? $"/develop/titles/{response.Title.Id:D}"
-                : $"/develop/titles/{response.Title.Id:D}/media");
+            await OnCreated.InvokeAsync(response.Title.Id);
+
+            if (NavigateOnSuccess)
+            {
+                NavigationManager.NavigateTo(mediaFailures.Count == 0
+                    ? $"/develop/titles/{response.Title.Id:D}"
+                    : $"/develop/titles/{response.Title.Id:D}/media");
+            }
+            else
+            {
+                ResetDraftAfterCreate();
+                StatusMessage = mediaFailures.Count == 0
+                    ? "Title created."
+                    : $"Title created, but media upload still needs attention for: {string.Join(", ", mediaFailures)}.";
+            }
         }
         catch (BoardLibraryApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
         {
@@ -664,6 +689,24 @@
     }
 
     private string DraftStorageKey => $"{LocalDraftStorageKeyPrefix}:{StudioId:D}";
+
+    private void ResetDraftAfterCreate()
+    {
+        DisplayName = null;
+        ContentKind = "game";
+        ShortDescription = null;
+        Description = null;
+        GenreTags.Clear();
+        GenreTagInput = null;
+        MinPlayers = 1;
+        MaxPlayers = 4;
+        AgeRatingAuthority = "ESRB";
+        AgeRatingValue = "E10+";
+        MinAgeYears = 10;
+        IsPreviewVisible = false;
+        ErrorMessage = null;
+        MediaRoleStates.Clear();
+    }
 
     private sealed class NewTitleMediaRoleState
     {

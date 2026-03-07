@@ -1,4 +1,4 @@
-@page "/games/{OrganizationSlug}/{TitleSlug}"
+@page "/browse/{StudioSlug}/{TitleSlug}"
 @inject IBoardLibraryApiClient ApiClient
 
 <PageTitle>Title Details</PageTitle>
@@ -28,10 +28,10 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach (var genreTag in ParseGenreTags(CatalogEntry.GenreDisplay))
                         {
-                            <span class="app-chip">@genreTag</span>
+                            <span class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-100">@genreTag</span>
                         }
-                        <span class="app-chip">@CatalogEntry.PlayerCountDisplay</span>
-                        <span class="app-chip">@CatalogEntry.AgeDisplay</span>
+                        <span class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-100">@CatalogEntry.PlayerCountDisplay</span>
+                        <span class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-100">@CatalogEntry.AgeDisplay</span>
                     </div>
                     <div>
                         <h1 class="app-page-title">@CatalogEntry.DisplayName</h1>
@@ -46,7 +46,7 @@
                                 @(CatalogEntry.Acquisition?.Label ?? "View acquisition")
                             </a>
                         }
-                        <a class="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="@($"/organizations/{CatalogEntry.OrganizationSlug}")">Open organization</a>
+                        <a class="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-100" href="@($"/studios/{CatalogEntry.StudioSlug}")">Open studio</a>
                     </div>
                 </div>
                 <div class="min-h-[320px] rounded-[1.75rem] bg-cover bg-center @HeroFallbackGradient" style="@HeroBackgroundStyle"></div>
@@ -55,14 +55,14 @@
 
         <section class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div class="app-panel p-6">
-                <div class="app-chip w-fit">About</div>
+                <h2 class="text-xl font-semibold text-white">About</h2>
                 <p class="mt-4 text-base leading-8 text-slate-300">
                     @CatalogEntry.ShortDescription
                 </p>
                 <div class="mt-6 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
                     <div class="rounded-[1.25rem] bg-black/15 p-4">
-                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Organization</div>
-                        <div class="mt-2 text-white">@CatalogEntry.OrganizationSlug</div>
+                        <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Studio</div>
+                        <div class="mt-2 text-white">@CatalogEntry.StudioSlug</div>
                     </div>
                     <div class="rounded-[1.25rem] bg-black/15 p-4">
                         <div class="text-xs uppercase tracking-[0.22em] text-cyan-100/70">Media assets</div>
@@ -71,7 +71,7 @@
                 </div>
             </div>
             <div class="app-panel p-6">
-                <div class="app-chip w-fit">Current release</div>
+                <h2 class="text-xl font-semibold text-white">Current release</h2>
                 <dl class="mt-4 grid gap-3 text-sm text-slate-300">
                     <div class="flex justify-between gap-4"><dt>Version</dt><dd>@(CatalogEntry.CurrentRelease?.Version ?? "Not published")</dd></div>
                     <div class="flex justify-between gap-4"><dt>Metadata revision</dt><dd>@(CatalogEntry.CurrentRelease?.MetadataRevisionNumber.ToString() ?? "-")</dd></div>
@@ -83,7 +83,7 @@
 </section>
 
 @code {
-    [Parameter] public string OrganizationSlug { get; set; } = string.Empty;
+    [Parameter] public string StudioSlug { get; set; } = string.Empty;
 
     [Parameter] public string TitleSlug { get; set; } = string.Empty;
 
@@ -115,7 +115,7 @@
 
         try
         {
-            CatalogEntry = await ApiClient.GetCatalogTitleAsync(OrganizationSlug, TitleSlug);
+            CatalogEntry = await ApiClient.GetCatalogTitleAsync(StudioSlug, TitleSlug);
         }
         catch (Exception exception)
         {
@@ -133,3 +133,4 @@
             _ => "bg-[linear-gradient(135deg,_#fef3c7,_#f97316,_#334155)]"
         };
 }
+

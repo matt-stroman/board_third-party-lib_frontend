@@ -6,7 +6,9 @@ using System.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,8 +33,17 @@ var keycloakOptions = builder.Configuration.GetSection(KeycloakOptions.SectionNa
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<ITicketStore, DistributedCacheTicketStore>();
+builder.Services.Configure<CircuitOptions>(options =>
+{
+    options.DetailedErrors = builder.Environment.IsDevelopment();
+    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+    options.DisconnectedCircuitMaxRetained = 200;
+});
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        options.DetailedErrors = builder.Environment.IsDevelopment();
+    });
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthorization();
@@ -89,7 +100,7 @@ builder.Services.AddAuthentication(options =>
 
                 var requestedReturnUrl = context.Properties?.RedirectUri;
                 var sanitizedReturnUrl = string.IsNullOrWhiteSpace(requestedReturnUrl) || !requestedReturnUrl.StartsWith("/", StringComparison.Ordinal)
-                    ? "/player/games"
+                    ? "/player"
                     : requestedReturnUrl;
 
                 var isCorrelationFailure =
@@ -137,15 +148,16 @@ builder.Services.AddHttpClient<IBoardLibraryApiClient, BoardLibraryApiClient>(cl
     client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
 });
 builder.Services.AddScoped<IUserProfileState, UserProfileState>();
+builder.Services.AddSingleton<CircuitHandler, LoggingCircuitHandler>();
 
 static string SanitizeReturnUrl(string? returnUrl)
 {
     if (string.IsNullOrWhiteSpace(returnUrl))
     {
-        return "/player/games";
+        return "/player";
     }
 
-    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player/games";
+    return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/player";
 }
 
 static string BuildSignInUnavailableUrl(string returnUrl) =>

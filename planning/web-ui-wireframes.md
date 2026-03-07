@@ -16,8 +16,8 @@ Used by:
 - `/library`
 - `/player/library`
 - `/player/wishlist`
-- `/library/:organizationSlug/:titleSlug`
-- `/organizations/:slug`
+- `/library/:studioSlug/:titleSlug`
+- `/studios/:slug`
 - `/account`
 - `/account/board-profile`
 
@@ -50,7 +50,7 @@ Mobile structure:
 
 Used by:
 
-- `/develop/organizations/*`
+- `/develop/studios/*`
 - `/develop/titles/*`
 
 Desktop structure:
@@ -187,7 +187,7 @@ Notes:
 - on mobile, the selected title remains visible above the rail, but layout becomes vertical
 - the first implementation should keep one primary browse mode instead of adding multiple view toggles
 
-## `/library/:organizationSlug/:titleSlug`
+## `/library/:studioSlug/:titleSlug`
 
 Goal:
 
@@ -212,7 +212,7 @@ Desktop:
 | Media gallery                                                                    |
 | [card art] [hero art] [logo]                                                     |
 +----------------------------------------------------------------------------------+
-| Current release summary | Organization summary                                   |
+| Current release summary | Studio summary                                   |
 +----------------------------------------------------------------------------------+
 ```
 
@@ -236,11 +236,11 @@ Mobile:
 +--------------------------------------+
 ```
 
-## `/organizations/:slug`
+## `/studios/:slug`
 
 Goal:
 
-- showcase a publisher/developer organization and its visible catalog
+- showcase a publisher/developer studio and its visible catalog
 
 Desktop:
 
@@ -333,11 +333,11 @@ Desktop:
 
 ```text
 +----------------------------------------------------------------------------------+
-| Active organization picker                                                       |
+| Active studio picker                                                       |
 +----------------------------------------------------------------------------------+
-| Quick actions: New organization | New title | Manage integrations                |
+| Quick actions: New studio | New title | Manage integrations                |
 +----------------------------------------------------------------------------------+
-| Organizations summary                                                            |
+| Studios summary                                                            |
 | [org card] [org card] [org card]                                                 |
 +----------------------------------------------------------------------------------+
 | Recent developer activity placeholders                                           |
@@ -374,11 +374,11 @@ Goal:
 +----------------------------------------------------------------------------------+
 ```
 
-## `/develop/organizations/:organizationId`
+## `/develop/studios/:studioId`
 
 Goal:
 
-- provide the organization home for all related management tasks
+- provide the studio home for all related management tasks
 
 ```text
 +----------------------------------------------------------------------------------+
@@ -392,7 +392,7 @@ Goal:
 +----------------------------------------------------------------------------------+
 ```
 
-## `/develop/organizations/:organizationId/titles`
+## `/develop/studios/:studioId/titles`
 
 Goal:
 
@@ -410,7 +410,7 @@ Goal:
 +----------------------------------------------------------------------------------+
 ```
 
-## `/develop/organizations/:organizationId/titles/new`
+## `/develop/studios/:studioId/titles/new`
 
 Goal:
 
@@ -519,11 +519,11 @@ Goal:
 +----------------------------------------------------------------------------------+
 ```
 
-## `/develop/organizations/:organizationId/integrations`
+## `/develop/studios/:studioId/integrations`
 
 Goal:
 
-- manage reusable organization-level publisher connections
+- manage reusable studio-level publisher connections
 
 ```text
 +----------------------------------------------------------------------------------+
@@ -556,3 +556,6 @@ Goal:
 - Below tablet widths, content should stack vertically and place the primary action above lower-priority supporting details.
 - Developer workflows should prioritize dense clarity over decorative layout shifts.
 - No controller-specific interaction patterns are required for this web UI.
+
+
+

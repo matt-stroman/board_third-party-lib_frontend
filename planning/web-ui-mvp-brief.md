@@ -29,7 +29,7 @@ The MVP web UI is one application with three user-facing surfaces:
 
 - a public library experience for players and general browsing
 - an authenticated player space for the signed-in player's library and wishlist
-- an authenticated developer console for organizations, titles, releases, media, and acquisition setup
+- an authenticated developer console for studios, titles, releases, media, and acquisition setup
 
 Wave 6 commerce and Wave 7 Board-native install flows remain out of scope for this web MVP.
 
@@ -90,8 +90,8 @@ Information architecture is the app's content and navigation structure: which ar
 Recommended top-level structure:
 
 - **Public library:** browse catalog, filter or sort content, and open a title details page
-- **Player library:** authenticated library, wishlist, and later personalized player organization features
-- **Developer console:** manage the signed-in user's organizations and the content belonging to those organizations
+- **Player library:** authenticated library, wishlist, and later personalized player studio features
+- **Developer console:** manage the signed-in user's studios and the content belonging to those studios
 - **Account area:** view the current user, access state, Board profile, and sign-in state
 
 Recommended primary navigation:
@@ -104,8 +104,8 @@ Recommended primary navigation:
 
 Recommended developer console structure:
 
-- organization overview
-- organization settings
+- studio overview
+- studio settings
 - memberships
 - titles
 - per-title workspace with tabs for overview, metadata, media, releases, artifacts, and acquisition
@@ -127,10 +127,10 @@ Recommended initial routes:
   - landing page that immediately surfaces featured or recent catalog content
 - `/library`
   - primary public catalog browse route
-- `/library/:organizationSlug/:titleSlug`
+- `/library/:studioSlug/:titleSlug`
   - public title detail route
-- `/organizations/:slug`
-  - public organization profile with that organization's visible titles
+- `/studios/:slug`
+  - public studio profile with that studio's visible titles
 
 ### Account routes
 
@@ -158,18 +158,18 @@ Recommended initial routes:
 ### Developer routes
 
 - `/develop`
-  - developer home and organization switcher
-- `/develop/organizations/new`
-  - create organization
-- `/develop/organizations/:organizationId`
-  - organization overview
-- `/develop/organizations/:organizationId/settings`
-  - organization update and delete actions
-- `/develop/organizations/:organizationId/memberships`
+  - developer home and studio switcher
+- `/develop/studios/new`
+  - create studio
+- `/develop/studios/:studioId`
+  - studio overview
+- `/develop/studios/:studioId/settings`
+  - studio update and delete actions
+- `/develop/studios/:studioId/memberships`
   - membership management
-- `/develop/organizations/:organizationId/titles`
+- `/develop/studios/:studioId/titles`
   - title list and create-title entry point
-- `/develop/organizations/:organizationId/titles/new`
+- `/develop/studios/:studioId/titles/new`
   - create title
 - `/develop/titles/:titleId`
   - title overview
@@ -181,15 +181,15 @@ Recommended initial routes:
   - release list and release actions
 - `/develop/titles/:titleId/acquisition`
   - title acquisition bindings
-- `/develop/organizations/:organizationId/integrations`
-  - reusable organization-level integration connections
+- `/develop/studios/:studioId/integrations`
+  - reusable studio-level integration connections
 
 Recommended initial navigation behavior:
 
 - public routes use a consumer-facing shell
 - player routes use the same consumer-facing shell with authenticated actions and private data
-- developer routes use a workspace shell with persistent organization context
-- when a developer belongs to multiple organizations, the active organization should be visible and easy to switch
+- developer routes use a workspace shell with persistent studio context
+- when a developer belongs to multiple studios, the active studio should be visible and easy to switch
 
 ## Data Fetching And Caching Strategy
 
@@ -225,7 +225,7 @@ Recommended standards:
 MVP-specific behaviors:
 
 - public library empty state should explain why no titles are shown and suggest clearing filters
-- developer empty states should include the next obvious action, such as creating an organization or first title
+- developer empty states should include the next obvious action, such as creating a studio or first title
 - auth failures should route users to sign-in with a clear return path
 - 403 and 404 states in developer routes should be distinct so membership problems are not confused with missing resources
 
@@ -235,7 +235,7 @@ The acquisition workflow should stay intentionally generic in the MVP.
 
 Recommended developer flow:
 
-- choose an existing organization-level connection or create one in context
+- choose an existing studio-level connection or create one in context
 - prefer supported publisher presets first
 - allow a custom publisher fallback when no supported preset fits
 - for each title, designate one primary active external acquisition destination
@@ -281,7 +281,7 @@ Critical MVP end-to-end paths:
 - sign-in and sign-out
 - authenticated player landing to player library
 - submit developer registration and moderate approval
-- create organization
+- create studio
 - create title
 - update title metadata
 - manage media
@@ -305,7 +305,7 @@ The current API surface is good enough to start UI scaffolding, but at least the
 
 Notes on current pressure points:
 
-- `GET /catalog` currently filters only by `organizationSlug` and `contentKind`
+- `GET /catalog` currently filters only by `studioSlug` and `contentKind`
 - public catalog list responses do not yet expose pagination metadata
 - media is URL-based today, so the frontend cannot yet offer first-party uploads
 
@@ -315,11 +315,14 @@ Notes on current pressure points:
 2. Add frontend scaffolding with app shells for public, developer, and account areas.
 3. Implement sign-in, sign-out, and current-user session handling.
 4. Implement public library list and title detail routes against the existing API.
-5. Add the developer console shell and organization switcher.
-6. Implement organization CRUD and memberships.
+5. Add the developer console shell and studio switcher.
+6. Implement studio CRUD and memberships.
 7. Implement title CRUD and metadata management.
 8. Implement media management with required alt text.
 9. Implement release and artifact management.
 10. Implement integration connections and title acquisition binding management.
 11. Add end-to-end tests for the critical flows.
 12. Tighten API contracts for catalog sorting, filtering, and pagination based on the first public UI pass.
+
+
+

@@ -27,26 +27,23 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
     [Theory]
     [InlineData("/", "Board Enthusiasts")]
-    [InlineData("/games", "Star Blasters")]
-    [InlineData("/organizations/stellar-forge", "Stellar Forge")]
-    [InlineData("/player/games", "My Games")]
+    [InlineData("/browse", "Star Blasters")]
+    [InlineData("/studios/stellar-forge", "Back to browse")]
+    [InlineData("/player", "My Games")]
     [InlineData("/player/wishlist", "No wishlist items yet")]
-    [InlineData("/games/stellar-forge/star-blasters", "View on itch.io")]
+    [InlineData("/browse/stellar-forge/star-blasters", "View on itch.io")]
     [InlineData("/develop", "Stellar Forge")]
     [InlineData("/moderate", "Moderation access unavailable")]
-    [InlineData("/develop/organizations/new", "Create organization")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111", "Edit organization")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/settings", "Save changes")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/titles", "Manage title metadata")]
-    [InlineData("/develop/organizations/11111111-1111-1111-1111-111111111111/titles/new", "Create title")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/titles", "Manage title metadata")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/titles/new", "Create title")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333", "Save title settings")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/metadata", "Save metadata")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/media", "Configure card, hero, and logo media")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/releases", "Create release")]
     [InlineData("/develop/titles/33333333-3333-3333-3333-333333333333/acquisition", "Current bindings")]
     [InlineData("/account", "Player library access")]
-    [InlineData("/account/profile", "Public profile")]
-    [InlineData("/account/settings", "Account Settings")]
+    [InlineData("/player?workflow=account-profile", "Save profile")]
+    [InlineData("/player?workflow=account-settings", "Account Settings")]
     [InlineData("/signin?error=identity-provider-unavailable", "Sign in is unavailable right now")]
     [InlineData("/signin?error=identity-provider-session-expired", "Sign-in session expired")]
     public async Task Route_ReturnsSuccessfulResponse_WithExpectedMarker(string route, string expectedContent)
@@ -57,6 +54,17 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains(expectedContent, content);
+    }
+
+    [Theory]
+    [InlineData("/develop/studios/new")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111")]
+    [InlineData("/develop/studios/11111111-1111-1111-1111-111111111111/settings")]
+    public async Task ObsoleteStandaloneStudioRoutes_ReturnNotFound(string route)
+    {
+        var response = await client.GetAsync(route);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -71,7 +79,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     true,
                     null,
                     ["player"]),
-                ManagedOrganizations: new DeveloperOrganizationListResponse([])));
+                ManagedStudios: new DeveloperStudioListResponse([])));
 
         using var playerClient = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -84,9 +92,36 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Become a Developer", content);
-        Assert.DoesNotContain("Managed organizations", content);
+        Assert.DoesNotContain("Managed studios", content);
         Assert.DoesNotContain("Current status", content, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Step 1", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task DevelopRoute_WithDeveloperRole_ShowsStudiosWorkflowsInConsole()
+    {
+        var response = await client.GetAsync("/develop");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Studio Overview", content);
+        Assert.Contains("Create studio", content);
+        Assert.Contains("Studio Settings", content);
+        Assert.Contains("Edit in console", content);
+    }
+
+    [Fact]
+    public async Task StudioPage_RendersBrandingAndStudioLinks()
+    {
+        var response = await client.GetAsync("/studios/stellar-forge");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Stellar Forge logo", content);
+        Assert.Contains("LinkedIn", content);
+        Assert.Contains("Press kit", content);
     }
 
     [Fact]
@@ -101,7 +136,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     true,
                     null,
                     ["moderator", "player"]),
-                ManagedOrganizations: new DeveloperOrganizationListResponse([])));
+                ManagedStudios: new DeveloperStudioListResponse([])));
 
         using var moderatorClient = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -113,7 +148,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Verified Developer Role", content);
+        Assert.Contains("Verify Developers", content);
         Assert.DoesNotContain("Moderation access unavailable", content, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -126,18 +161,52 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
     }
 
     [Fact]
-    public async Task AccountSettingsRoute_ShowsKeycloakProfileEditActions()
+    public async Task LegacyGamesRoute_ReturnsNotFoundPage()
+    {
+        var response = await client.GetAsync("/games");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LegacyAccountSettingsRoute_ReturnsNotFoundPage()
     {
         var response = await client.GetAsync("/account/settings");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LegacyPlayerAccountSettingsRoute_ReturnsNotFoundPage()
+    {
+        var response = await client.GetAsync("/player/settings");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LegacyPlayerProfileRoute_ReturnsNotFoundPage()
+    {
+        var response = await client.GetAsync("/player/profile");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PlayerWorkspaceAccountSettingsWorkflow_ShowsIdentityProfileEditActions()
+    {
+        var response = await client.GetAsync("/player?workflow=account-settings");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("/auth/update-profile?returnUrl=%2Faccount%2Fsettings", content);
+        Assert.Contains("/auth/update-profile?returnUrl=%2Fplayer%3Fworkflow%3Daccount-settings", content);
         Assert.Contains("Edit username", content);
         Assert.Contains("Edit first name", content);
         Assert.Contains("Edit last name", content);
         Assert.Contains("Edit email address", content);
+        Assert.DoesNotContain("Developer access", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Become a Developer", content, StringComparison.OrdinalIgnoreCase);
     }
 
     public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
@@ -197,7 +266,8 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         UserProfile? UserProfile = null,
         DeveloperEnrollmentResponse? DeveloperEnrollment = null,
         BoardProfile? BoardProfile = null,
-        DeveloperOrganizationListResponse? ManagedOrganizations = null)
+        DeveloperStudioListResponse? ManagedStudios = null,
+        ModerationDeveloperListResponse? ModerationDevelopers = null)
     {
         public static TestApiData Default { get; } = new(
             CurrentUser: new CurrentUserResponse(
@@ -232,15 +302,38 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                 "https://cdn.board.fun/users/board_user_12345/avatar.png",
                 DateTime.Parse("2026-03-01T18:00:00Z"),
                 DateTime.Parse("2026-03-01T18:00:00Z")),
-            ManagedOrganizations: new DeveloperOrganizationListResponse(
+            ManagedStudios: new DeveloperStudioListResponse(
                 [
-                    new DeveloperOrganizationSummary(
+                    new DeveloperStudioSummary(
                         Guid.Parse("11111111-1111-1111-1111-111111111111"),
                         "stellar-forge",
                         "Stellar Forge",
                         "Family co-op studio.",
                         "https://cdn.example.com/orgs/stellar-forge.png",
+                        "https://cdn.example.com/orgs/stellar-forge-banner.png",
+                        [
+                            new StudioLink(
+                                Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"),
+                                "LinkedIn",
+                                "https://www.linkedin.com/company/stellar-forge",
+                                DateTime.Parse("2026-03-01T18:00:00Z"),
+                                DateTime.Parse("2026-03-01T18:00:00Z")),
+                            new StudioLink(
+                                Guid.Parse("aaaaaaaa-2222-2222-2222-222222222222"),
+                                "Press kit",
+                                "https://stellarforge.example.com/press",
+                                DateTime.Parse("2026-03-01T18:10:00Z"),
+                                DateTime.Parse("2026-03-01T18:10:00Z"))
+                        ],
                         "owner")
+                ]),
+            ModerationDevelopers: new ModerationDeveloperListResponse(
+                [
+                    new ModerationDeveloperSummary(
+                        "developer-123",
+                        "dev-one",
+                        "Developer One",
+                        "dev-one@boardtpl.local")
                 ]));
     }
 
@@ -296,10 +389,10 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
             var filtered = allTitles.AsEnumerable();
 
-            if (!string.IsNullOrWhiteSpace(request.OrganizationSlug))
+            if (!string.IsNullOrWhiteSpace(request.StudioSlug))
             {
                 filtered = filtered.Where(candidate =>
-                    string.Equals(candidate.OrganizationSlug, request.OrganizationSlug, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(candidate.StudioSlug, request.StudioSlug, StringComparison.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrWhiteSpace(request.ContentKind))
@@ -316,7 +409,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
             var ordered = string.Equals(request.Sort, "genre", StringComparison.OrdinalIgnoreCase)
                 ? filtered.OrderBy(candidate => candidate.GenreDisplay).ThenBy(candidate => candidate.DisplayName)
-                : filtered.OrderBy(candidate => candidate.DisplayName).ThenBy(candidate => candidate.OrganizationSlug);
+                : filtered.OrderBy(candidate => candidate.DisplayName).ThenBy(candidate => candidate.StudioSlug);
 
             var result = ordered.ToArray();
             var pageSize = request.PageSize <= 0 ? 12 : request.PageSize;
@@ -337,7 +430,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         pageNumber < totalPages)));
         }
 
-        public Task<CatalogTitle?> GetCatalogTitleAsync(string organizationSlug, string titleSlug, CancellationToken cancellationToken = default) =>
+        public Task<CatalogTitle?> GetCatalogTitleAsync(string studioSlug, string titleSlug, CancellationToken cancellationToken = default) =>
             Task.FromResult<CatalogTitle?>(
                 new CatalogTitle(
                     Guid.Parse("33333333-3333-3333-3333-333333333333"),
@@ -386,29 +479,53 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                     DateTime.Parse("2026-03-02T18:00:00Z"),
                     DateTime.Parse("2026-03-02T18:10:00Z")));
 
-        public Task<OrganizationListResponse> GetPublicOrganizationsAsync(CancellationToken cancellationToken = default) =>
+        public Task<StudioListResponse> GetPublicStudiosAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(
-                new OrganizationListResponse(
+                new StudioListResponse(
                 [
-                    new OrganizationSummary(
+                    new StudioSummary(
                         Guid.Parse("11111111-1111-1111-1111-111111111111"),
                         "stellar-forge",
                         "Stellar Forge",
                         "Family co-op studio.",
                         "https://cdn.example.com/orgs/stellar-forge.png",
+                        "https://cdn.example.com/orgs/stellar-forge-banner.png",
+                        [
+                            new StudioLink(
+                                Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"),
+                                "LinkedIn",
+                                "https://www.linkedin.com/company/stellar-forge",
+                                DateTime.Parse("2026-03-01T18:00:00Z"),
+                                DateTime.Parse("2026-03-01T18:00:00Z"))
+                        ],
                         DateTime.Parse("2026-03-01T18:00:00Z"),
                         DateTime.Parse("2026-03-01T18:00:00Z"))
                 ]));
 
-        public Task<OrganizationSummary?> GetPublicOrganizationBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
-            Task.FromResult<OrganizationSummary?>(
+        public Task<StudioSummary?> GetPublicStudioBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+            Task.FromResult<StudioSummary?>(
                 string.Equals(slug, "stellar-forge", StringComparison.OrdinalIgnoreCase)
-                    ? new OrganizationSummary(
+                    ? new StudioSummary(
                         Guid.Parse("11111111-1111-1111-1111-111111111111"),
                         "stellar-forge",
                         "Stellar Forge",
                         "Family co-op studio.",
                         "https://cdn.example.com/orgs/stellar-forge.png",
+                        "https://cdn.example.com/orgs/stellar-forge-banner.png",
+                        [
+                            new StudioLink(
+                                Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"),
+                                "LinkedIn",
+                                "https://www.linkedin.com/company/stellar-forge",
+                                DateTime.Parse("2026-03-01T18:00:00Z"),
+                                DateTime.Parse("2026-03-01T18:00:00Z")),
+                            new StudioLink(
+                                Guid.Parse("aaaaaaaa-2222-2222-2222-222222222222"),
+                                "Press kit",
+                                "https://stellarforge.example.com/press",
+                                DateTime.Parse("2026-03-01T18:10:00Z"),
+                                DateTime.Parse("2026-03-01T18:10:00Z"))
+                        ],
                         DateTime.Parse("2026-03-01T18:00:00Z"),
                         DateTime.Parse("2026-03-01T18:00:00Z"))
                     : null);
@@ -477,56 +594,128 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                         true,
                         false)));
 
-        public Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default) =>
-            Task.FromResult(
-                new VerifiedDeveloperRoleStateResponse(
-                    new VerifiedDeveloperRoleState(
-                        developerSubject,
-                        true,
-                        false)));
+        public Task<ModerationDeveloperListResponse> GetModerationDevelopersAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(data.ModerationDevelopers ?? new ModerationDeveloperListResponse([]));
 
-        public Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerSubject, CancellationToken cancellationToken = default) =>
+        public Task<VerifiedDeveloperRoleStateResponse> GetVerifiedDeveloperRoleStateAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new VerifiedDeveloperRoleStateResponse(
                     new VerifiedDeveloperRoleState(
-                        developerSubject,
+                        developerIdentifier,
                         false,
                         false)));
 
-        public Task<DeveloperOrganizationListResponse> GetManagedOrganizationsAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(data.ManagedOrganizations ?? new DeveloperOrganizationListResponse([]));
-
-        public Task<OrganizationResponse> CreateOrganizationAsync(CreateOrganizationRequest request, CancellationToken cancellationToken = default) =>
+        public Task<VerifiedDeveloperRoleStateResponse> GrantVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
             Task.FromResult(
-                new OrganizationResponse(
-                    new OrganizationSummary(
+                new VerifiedDeveloperRoleStateResponse(
+                    new VerifiedDeveloperRoleState(
+                        developerIdentifier,
+                        true,
+                        false)));
+
+        public Task<VerifiedDeveloperRoleStateResponse> RevokeVerifiedDeveloperRoleAsync(string developerIdentifier, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new VerifiedDeveloperRoleStateResponse(
+                    new VerifiedDeveloperRoleState(
+                        developerIdentifier,
+                        false,
+                        false)));
+
+        public Task<DeveloperStudioListResponse> GetManagedStudiosAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(data.ManagedStudios ?? new DeveloperStudioListResponse([]));
+
+        public Task<StudioResponse> CreateStudioAsync(CreateStudioRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioResponse(
+                    new StudioSummary(
                         Guid.Parse("12121212-1212-1212-1212-121212121212"),
                         request.Slug,
                         request.DisplayName,
                         request.Description,
                         request.LogoUrl,
+                        request.BannerUrl,
+                        [],
                         DateTime.Parse("2026-03-04T10:00:00Z"),
                         DateTime.Parse("2026-03-04T10:00:00Z"))));
 
-        public Task<OrganizationResponse> UpdateOrganizationAsync(Guid organizationId, UpdateOrganizationRequest request, CancellationToken cancellationToken = default) =>
+        public Task<StudioResponse> UpdateStudioAsync(Guid studioId, UpdateStudioRequest request, CancellationToken cancellationToken = default) =>
             Task.FromResult(
-                new OrganizationResponse(
-                    new OrganizationSummary(
-                        organizationId,
+                new StudioResponse(
+                    new StudioSummary(
+                        studioId,
                         request.Slug,
                         request.DisplayName,
                         request.Description,
                         request.LogoUrl,
+                        request.BannerUrl,
+                        [],
                         DateTime.Parse("2026-03-04T10:00:00Z"),
                         DateTime.Parse("2026-03-04T10:30:00Z"))));
 
-        public Task<DeveloperTitleListResponse> GetOrganizationTitlesAsync(Guid organizationId, CancellationToken cancellationToken = default) =>
+        public Task<StudioLinkListResponse> GetStudioLinksAsync(Guid studioId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioLinkListResponse(
+                    data.ManagedStudios?.Studios.FirstOrDefault(candidate => candidate.Id == studioId)?.Links
+                    ?? []));
+
+        public Task<StudioLinkResponse> CreateStudioLinkAsync(Guid studioId, UpsertStudioLinkRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioLinkResponse(
+                    new StudioLink(
+                        Guid.Parse("aaaaaaaa-3333-3333-3333-333333333333"),
+                        request.Label,
+                        request.Url,
+                        DateTime.Parse("2026-03-04T10:00:00Z"),
+                        DateTime.Parse("2026-03-04T10:00:00Z"))));
+
+        public Task<StudioLinkResponse> UpdateStudioLinkAsync(Guid studioId, Guid linkId, UpsertStudioLinkRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioLinkResponse(
+                    new StudioLink(
+                        linkId,
+                        request.Label,
+                        request.Url,
+                        DateTime.Parse("2026-03-04T10:00:00Z"),
+                        DateTime.Parse("2026-03-04T10:30:00Z"))));
+
+        public Task DeleteStudioLinkAsync(Guid studioId, Guid linkId, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task<StudioResponse> UploadStudioLogoAsync(Guid studioId, ApiUploadFile mediaFile, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioResponse(
+                    new StudioSummary(
+                        studioId,
+                        "stellar-forge",
+                        "Stellar Forge",
+                        "Family co-op studio.",
+                        $"data:{mediaFile.ContentType};base64,{Convert.ToBase64String(mediaFile.Content)}",
+                        "https://cdn.example.com/orgs/stellar-forge-banner.png",
+                        [],
+                        DateTime.Parse("2026-03-04T10:00:00Z"),
+                        DateTime.Parse("2026-03-04T10:30:00Z"))));
+
+        public Task<StudioResponse> UploadStudioBannerAsync(Guid studioId, ApiUploadFile mediaFile, CancellationToken cancellationToken = default) =>
+            Task.FromResult(
+                new StudioResponse(
+                    new StudioSummary(
+                        studioId,
+                        "stellar-forge",
+                        "Stellar Forge",
+                        "Family co-op studio.",
+                        "https://cdn.example.com/orgs/stellar-forge.png",
+                        $"data:{mediaFile.ContentType};base64,{Convert.ToBase64String(mediaFile.Content)}",
+                        [],
+                        DateTime.Parse("2026-03-04T10:00:00Z"),
+                        DateTime.Parse("2026-03-04T10:30:00Z"))));
+
+        public Task<DeveloperTitleListResponse> GetStudioTitlesAsync(Guid studioId, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new DeveloperTitleListResponse(
                     [
                         new CatalogTitleSummary(
                             Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                            organizationId,
+                            studioId,
                             "stellar-forge",
                             "star-blasters",
                             "game",
@@ -547,12 +736,12 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                             "https://stellar-forge.itch.io/star-blasters")
                     ]));
 
-        public Task<DeveloperTitleResponse> CreateTitleAsync(Guid organizationId, CreateDeveloperTitleRequest request, CancellationToken cancellationToken = default) =>
+        public Task<DeveloperTitleResponse> CreateTitleAsync(Guid studioId, CreateDeveloperTitleRequest request, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new DeveloperTitleResponse(
                     BuildDeveloperTitle(
                         Guid.Parse("34343434-3434-3434-3434-343434343434"),
-                        organizationId,
+                        studioId,
                         request.Slug,
                         request.ContentKind,
                         request.LifecycleStatus,
@@ -839,13 +1028,13 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         public Task DeleteReleaseArtifactAsync(Guid titleId, Guid releaseId, Guid artifactId, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
 
-        public Task<IntegrationConnectionListResponse> GetOrganizationIntegrationConnectionsAsync(Guid organizationId, CancellationToken cancellationToken = default) =>
+        public Task<IntegrationConnectionListResponse> GetStudioIntegrationConnectionsAsync(Guid studioId, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new IntegrationConnectionListResponse(
                     [
                         new IntegrationConnection(
                             Guid.Parse("abababab-1111-1111-1111-111111111111"),
-                            organizationId,
+                            studioId,
                             null,
                             null,
                             "itch.io",
@@ -856,12 +1045,12 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
                             DateTime.Parse("2026-03-04T10:00:00Z"))
                     ]));
 
-        public Task<IntegrationConnectionResponse> CreateOrganizationIntegrationConnectionAsync(Guid organizationId, UpsertIntegrationConnectionRequest request, CancellationToken cancellationToken = default) =>
+        public Task<IntegrationConnectionResponse> CreateStudioIntegrationConnectionAsync(Guid studioId, UpsertIntegrationConnectionRequest request, CancellationToken cancellationToken = default) =>
             Task.FromResult(
                 new IntegrationConnectionResponse(
                     new IntegrationConnection(
                         Guid.Parse("abababab-4444-4444-4444-444444444444"),
-                        organizationId,
+                        studioId,
                         request.SupportedPublisherId,
                         null,
                         request.CustomPublisherDisplayName,
@@ -956,7 +1145,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
 
         private static DeveloperTitle BuildDeveloperTitle(
             Guid titleId,
-            Guid organizationId,
+            Guid studioId,
             string slug,
             string contentKind,
             string lifecycleStatus,
@@ -964,7 +1153,7 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
             UpsertTitleMetadataRequest metadata) =>
             new(
                 titleId,
-                organizationId,
+                studioId,
                 "stellar-forge",
                 slug,
                 contentKind,
@@ -1040,3 +1229,4 @@ public sealed class AppRouteSmokeTests : IClassFixture<AppRouteSmokeTests.TestWe
         }
     }
 }
+

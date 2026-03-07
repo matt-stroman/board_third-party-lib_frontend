@@ -10,7 +10,7 @@ The project now has a backend MVP surface through Wave 5:
 
 - public catalog browse and detail
 - Keycloak-backed identity and current-user profile
-- organization and membership management
+- studio and membership management
 - title, metadata, media, release, artifact, and acquisition management
 
 The team wants to introduce a browser-based UI now to validate the existing vertical slice and gather product feedback before moving further into the less certain Wave 6 and Wave 7 areas.
@@ -64,7 +64,7 @@ Blazor is the pragmatic fit because:
 The public catalog benefits from server-first rendering because:
 
 - the first paint is fast
-- direct links to organizations and titles work naturally
+- direct links to studios and titles work naturally
 - pages remain useful even when JavaScript hydration is delayed
 - the catalog experience is closer to content browsing than to an app-like dashboard
 
@@ -102,3 +102,4 @@ Near-term follow-up items created by this decision:
 3. Implement a public shell and a developer shell.
 4. Add session-based sign-in and sign-out flow handling.
 5. Extend the API contract for stronger catalog browse support, starting with genre filtering or sorting and pagination metadata.
+

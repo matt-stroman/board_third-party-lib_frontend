@@ -71,10 +71,11 @@ public sealed class BrowseCatalogProjectionServiceTests
 
         Assert.Single(projection.FilteredTitles);
         Assert.Single(projection.VisibleStudios);
-        Assert.Single(projection.AvailableGenres);
         Assert.Equal("Beacon Boardwalk", projection.FilteredTitles[0].DisplayName);
         Assert.Equal("Harborlight Mechanics", projection.VisibleStudios[0].DisplayName);
-        Assert.Equal("Strategy", projection.AvailableGenres[0]);
+        Assert.Equal(2, projection.AvailableGenres.Count);
+        Assert.Contains("Strategy", projection.AvailableGenres);
+        Assert.Contains("Family", projection.AvailableGenres);
     }
 
     private static IReadOnlyList<CatalogTitleSummary> CreateTitles() =>

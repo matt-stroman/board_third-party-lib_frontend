@@ -35,7 +35,7 @@ npm run test
 From the repo root, the default workflow remains:
 
 ```bash
-python ./scripts/dev.py web
+python ./scripts/dev.py web --hot-reload
 ```
 
 That path starts local Supabase, the Workers API, and this SPA together.

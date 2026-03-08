@@ -73,7 +73,7 @@ function renderApp(path: string) {
   );
 }
 
-describe("Wave 3 App", () => {
+describe("App", () => {
   beforeEach(() => {
     authState.value = {
       session: null,

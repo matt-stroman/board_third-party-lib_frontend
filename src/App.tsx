@@ -324,9 +324,9 @@ function HomePage() {
       </section>
 
       <Panel
-        title="Wave 3 cutover status"
+        title="Platform status"
         eyebrow="Frontend"
-        description="The SPA is now the maintained frontend path and talks directly to the Workers API surface."
+        description="The maintained SPA talks directly to the Workers API surface."
       >
         <ul className="bullet-list">
           <li>Public catalog and studio browsing</li>
@@ -350,7 +350,7 @@ function HomePage() {
             </div>
           </Panel>
 
-          <Panel title="Studios in this wave" eyebrow="Public studios">
+          <Panel title="Studios on the platform" eyebrow="Public studios">
             <div className="card-grid">
               {studios.slice(0, 3).map((studio) => (
                 <StudioCard key={studio.id} studio={studio} />
@@ -845,7 +845,7 @@ function PlayerPage() {
       <section className="hero-panel compact">
         <div className="eyebrow">Player</div>
         <h1>My Games</h1>
-        <p>Wave 3 preserves the player workspace shell while moving the identity and enrollment flows to Supabase.</p>
+        <p>The player workspace uses Supabase-backed identity and enrollment flows.</p>
       </section>
 
       <Panel title="Profile" eyebrow={currentUser?.displayName ?? "Current user"}>
@@ -1423,7 +1423,7 @@ function ModeratePage() {
 function NotFoundPage() {
   return (
     <div className="page-grid narrow">
-      <Panel title="Route not found" eyebrow="404" description="The requested route is not part of the maintained Wave 3 surface.">
+      <Panel title="Route not found" eyebrow="404" description="The requested route is not part of the maintained application surface.">
         <div className="hero-actions">
           <Link to="/" className="primary-button">
             Return home

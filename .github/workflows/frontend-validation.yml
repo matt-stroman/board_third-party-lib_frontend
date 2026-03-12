@@ -25,6 +25,9 @@ jobs:
     timeout-minutes: 25
 
     steps:
+      - name: Checkout frontend PR branch
+        uses: actions/checkout@v4
+
       - name: Determine root repo ref
         id: root_ref
         run: |
@@ -42,21 +45,15 @@ jobs:
             fi
           fi
 
-      - name: Checkout root workspace
-        uses: actions/checkout@v4
-        with:
-          repository: matt-stroman/board-enthusiasts
-          ref: ${{ steps.root_ref.outputs.root_ref }}
-          submodules: recursive
-
-      - name: Pin frontend submodule to PR commit
-        env:
-          SUBMODULE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          SUBMODULE_REPO: ${{ github.repository }}
+      - name: Clone root workspace
         run: |
-          git -C frontend fetch --depth=1 "https://github.com/${SUBMODULE_REPO}.git" "${SUBMODULE_SHA}"
-          git -C frontend checkout --detach FETCH_HEAD
-          git submodule status --recursive
+          git clone --depth 1 --branch "${{ steps.root_ref.outputs.root_ref }}" --recurse-submodules https://github.com/matt-stroman/board-enthusiasts.git root-workspace
+
+      - name: Overlay frontend PR contents into root workspace
+        run: |
+          rm -rf root-workspace/frontend
+          mkdir -p root-workspace/frontend
+          rsync -a --delete --exclude '.git/' ./ root-workspace/frontend/
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -69,10 +66,13 @@ jobs:
           node-version: "22"
 
       - name: Run SPA tests
-        run: npm --workspace frontend test
+        working-directory: root-workspace
+        run: npm ci && npm --workspace frontend test
 
       - name: Run maintained workspace typecheck
+        working-directory: root-workspace
         run: npm run typecheck:migration
 
       - name: Run Pages staging dry run
+        working-directory: root-workspace
         run: python ./scripts/dev.py deploy-staging --dry-run --pages-only

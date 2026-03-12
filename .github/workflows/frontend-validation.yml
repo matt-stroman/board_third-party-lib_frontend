@@ -1,0 +1,78 @@
+name: Frontend Validation
+
+on:
+  push:
+    branches:
+      - main
+      - feat/cloudflare-supabase-workers-frontend-cutover
+      - feat/cloudflare-supabase-workers-frontend-cutover-wave-wrapup
+  pull_request:
+    branches:
+      - main
+      - feat/cloudflare-supabase-workers-frontend-cutover
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Frontend In Root Workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Determine root repo ref
+        id: root_ref
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            if [ "${{ github.base_ref }}" = "main" ]; then
+              echo "root_ref=main" >> "$GITHUB_OUTPUT"
+            else
+              echo "root_ref=feat/cloudflare-supabase-workers-conversion" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              echo "root_ref=main" >> "$GITHUB_OUTPUT"
+            else
+              echo "root_ref=feat/cloudflare-supabase-workers-conversion" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Checkout root workspace
+        uses: actions/checkout@v4
+        with:
+          repository: matt-stroman/board-enthusiasts
+          ref: ${{ steps.root_ref.outputs.root_ref }}
+          submodules: recursive
+
+      - name: Pin frontend submodule to PR commit
+        env:
+          SUBMODULE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          SUBMODULE_REPO: ${{ github.repository }}
+        run: |
+          git -C frontend fetch --depth=1 "https://github.com/${SUBMODULE_REPO}.git" "${SUBMODULE_SHA}"
+          git -C frontend checkout --detach FETCH_HEAD
+          git submodule status --recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run SPA tests
+        run: npm --workspace frontend test
+
+      - name: Run maintained workspace typecheck
+        run: npm run typecheck:migration
+
+      - name: Run Pages staging dry run
+        run: python ./scripts/dev.py deploy-staging --dry-run --pages-only

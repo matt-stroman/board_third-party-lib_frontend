@@ -21,6 +21,7 @@
     font-family: var(--font-body);
     color: #f7f2e8;
     background-color: #17151a;
+    overflow-x: clip;
   }
 
   body {
@@ -32,6 +33,7 @@
       radial-gradient(circle at 50% 0%, rgba(255, 251, 240, 0.08), transparent 38%),
       linear-gradient(180deg, #17151a 0%, #1d1a20 50%, #151318 100%);
     color: #f7f2e8;
+    overflow-x: clip;
   }
 
   a {
@@ -51,12 +53,14 @@
 
   #root {
     min-height: 100vh;
+    overflow-x: clip;
   }
 }
 
 @layer components {
   .app-root {
     @apply flex min-h-screen flex-col;
+    overflow-x: clip;
   }
 
   .app-header {
@@ -130,6 +134,23 @@
     max-width: 108rem;
   }
 
+  .landing-main,
+  .landing-shell,
+  .landing-section,
+  .landing-hero,
+  .landing-hero-column,
+  .landing-hero-rail,
+  .landing-card-grid,
+  .landing-showcase-card,
+  .landing-about-card,
+  .landing-promo-card,
+  .landing-signup-card,
+  .landing-offering-card,
+  .landing-board-note,
+  .form-grid {
+    min-width: 0;
+  }
+
   .app-footer {
     @apply border-t border-white/10 bg-[#17151a]/72;
   }
@@ -195,7 +216,17 @@
   .app-panel,
   .panel,
   .hero-panel {
-    @apply rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(37,34,41,0.96),rgba(26,24,31,0.96))] shadow-[0_24px_70px_rgba(8,8,12,0.34)] backdrop-blur;
+    @apply rounded-[1.75rem] border backdrop-blur;
+    border-color: rgba(112, 255, 167, 0.18);
+    background:
+      radial-gradient(circle at 16% 0%, rgba(96, 255, 164, 0.1), transparent 24%),
+      radial-gradient(circle at 100% 14%, rgba(77, 117, 244, 0.12), transparent 22%),
+      linear-gradient(180deg, rgba(37, 34, 41, 0.97), rgba(26, 24, 31, 0.97));
+    box-shadow:
+      inset 0 1px 0 rgba(235, 255, 244, 0.04),
+      0 0 0 1px rgba(112, 255, 167, 0.04),
+      0 18px 52px rgba(8, 8, 12, 0.34),
+      0 0 22px rgba(64, 198, 141, 0.08);
   }
 
   .panel,
@@ -204,15 +235,36 @@
   }
 
   .panel.inset-panel {
-    @apply rounded-[1.5rem] border border-white/8 bg-[linear-gradient(180deg,rgba(28,25,34,0.92),rgba(18,16,24,0.92))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)];
+    @apply rounded-[1.5rem] border p-4;
+    border-color: rgba(112, 255, 167, 0.14);
+    background:
+      radial-gradient(circle at 14% 0%, rgba(96, 255, 164, 0.08), transparent 22%),
+      linear-gradient(180deg, rgba(28, 25, 34, 0.94), rgba(18, 16, 24, 0.94));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.025),
+      0 0 18px rgba(64, 198, 141, 0.05);
   }
 
   .surface-panel-soft {
-    @apply border border-white/8 bg-[linear-gradient(180deg,rgba(28,25,34,0.92),rgba(18,16,24,0.92))] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)];
+    @apply border;
+    border-color: rgba(112, 255, 167, 0.14);
+    background:
+      radial-gradient(circle at 14% 0%, rgba(96, 255, 164, 0.08), transparent 22%),
+      linear-gradient(180deg, rgba(28, 25, 34, 0.94), rgba(18, 16, 24, 0.94));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.025),
+      0 0 18px rgba(64, 198, 141, 0.05);
   }
 
   .surface-panel-strong {
-    @apply border border-white/10 bg-[linear-gradient(180deg,rgba(24,22,30,0.96),rgba(16,15,22,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)];
+    @apply border;
+    border-color: rgba(112, 255, 167, 0.18);
+    background:
+      radial-gradient(circle at 16% 0%, rgba(96, 255, 164, 0.1), transparent 24%),
+      linear-gradient(180deg, rgba(24, 22, 30, 0.97), rgba(16, 15, 22, 0.97));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 20px rgba(64, 198, 141, 0.06);
   }
 
   .browse-title-card-panel {
@@ -331,12 +383,42 @@
   }
 
   .primary-button {
-    @apply inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-cyan-300/45 disabled:text-slate-950/55 disabled:hover:bg-cyan-300/45;
+    @apply inline-flex items-center justify-center rounded-full border px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-slate-950 transition disabled:cursor-not-allowed disabled:text-slate-950/55;
+    border-color: rgba(124, 249, 167, 0.48);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(201, 255, 220, 0.42), transparent 56%),
+      linear-gradient(180deg, rgba(85, 226, 151, 0.98), rgba(63, 198, 141, 0.98));
+    box-shadow:
+      0 0 0 1px rgba(124, 249, 167, 0.08),
+      0 0 24px rgba(64, 198, 141, 0.18),
+      0 16px 34px rgba(8, 8, 12, 0.24);
+  }
+
+  .primary-button:hover {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(214, 255, 229, 0.52), transparent 58%),
+      linear-gradient(180deg, rgba(105, 238, 166, 1), rgba(73, 208, 152, 1));
   }
 
   .secondary-button,
   .pill-button {
-    @apply inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100 transition hover:border-cyan-300/50 hover:text-cyan-100 disabled:cursor-not-allowed disabled:border-white/8 disabled:text-slate-100/40 disabled:hover:border-white/8 disabled:hover:text-slate-100/40;
+    @apply inline-flex items-center justify-center rounded-full border px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-100 transition disabled:cursor-not-allowed disabled:text-slate-100/40;
+    border-color: rgba(112, 255, 167, 0.18);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(95, 255, 164, 0.12), transparent 56%),
+      linear-gradient(180deg, rgba(26, 24, 32, 0.94), rgba(17, 16, 24, 0.94));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 20px rgba(64, 198, 141, 0.05);
+  }
+
+  .secondary-button:hover,
+  .pill-button:hover {
+    border-color: rgba(124, 249, 167, 0.42);
+    color: rgb(220 247 234 / 1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 24px rgba(64, 198, 141, 0.1);
   }
 
   .danger-button {
@@ -344,7 +426,14 @@
   }
 
   .card {
-    @apply overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(24,22,30,0.96),rgba(16,15,22,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)];
+    @apply overflow-hidden rounded-[1.5rem] border;
+    border-color: rgba(112, 255, 167, 0.18);
+    background:
+      radial-gradient(circle at 16% 0%, rgba(96, 255, 164, 0.08), transparent 24%),
+      linear-gradient(180deg, rgba(24, 22, 30, 0.97), rgba(16, 15, 22, 0.97));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 20px rgba(64, 198, 141, 0.06);
   }
 
   .card-media {
@@ -420,7 +509,21 @@
   .field input,
   .field select,
   .field textarea {
-    @apply w-full rounded-[1rem] border border-white/12 bg-[#111017] px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/50;
+    @apply w-full rounded-[1rem] border px-4 py-3 text-slate-100 outline-none transition;
+    border-color: rgba(112, 255, 167, 0.16);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(95, 255, 164, 0.08), transparent 54%),
+      linear-gradient(180deg, rgba(17, 16, 23, 0.98), rgba(15, 14, 21, 0.98));
+    box-shadow: 0 0 18px rgba(64, 198, 141, 0.035);
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: rgba(124, 249, 167, 0.42);
+    box-shadow:
+      0 0 0 1px rgba(124, 249, 167, 0.06),
+      0 0 24px rgba(64, 198, 141, 0.1);
   }
 
   .password-field {
@@ -592,8 +695,8 @@
   .landing-hero-panel {
     @apply min-h-[25rem] overflow-hidden p-8 xl:p-10;
     background:
-      radial-gradient(circle at top left, rgba(243, 177, 58, 0.16), transparent 26%),
-      radial-gradient(circle at 85% 16%, rgba(77, 117, 244, 0.22), transparent 26%),
+      radial-gradient(circle at top left, rgba(96, 255, 164, 0.14), transparent 24%),
+      radial-gradient(circle at 85% 16%, rgba(77, 117, 244, 0.22), transparent 24%),
       linear-gradient(180deg, rgba(28, 25, 34, 0.98), rgba(18, 16, 24, 0.98));
   }
 
@@ -673,11 +776,15 @@
   }
 
   .landing-showcase-card {
-    @apply rounded-[1.75rem] border border-white/10 p-6 xl:p-8;
-    background: linear-gradient(180deg, rgba(28, 25, 34, 0.95), rgba(18, 16, 24, 0.95));
+    @apply rounded-[1.75rem] border p-6 xl:p-8;
+    border-color: rgba(112, 255, 167, 0.18);
+    background:
+      radial-gradient(circle at 14% 0%, rgba(96, 255, 164, 0.1), transparent 26%),
+      linear-gradient(180deg, rgba(28, 25, 34, 0.95), rgba(18, 16, 24, 0.95));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.03),
-      0 24px 70px rgba(8, 8, 12, 0.28);
+      0 24px 70px rgba(8, 8, 12, 0.28),
+      0 0 24px rgba(64, 198, 141, 0.08);
   }
 
   .landing-showcase-card h2 {
@@ -706,7 +813,12 @@
   }
 
   .landing-consent {
-    @apply flex items-start gap-3 rounded-[1rem] border border-white/10 bg-slate-950/40 px-4 py-4 text-sm leading-7 text-slate-300;
+    @apply flex items-start gap-3 rounded-[1rem] border px-4 py-4 text-sm leading-7 text-slate-300;
+    border-color: rgba(112, 255, 167, 0.16);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(95, 255, 164, 0.07), transparent 54%),
+      linear-gradient(180deg, rgba(15, 16, 25, 0.6), rgba(10, 12, 20, 0.55));
+    box-shadow: 0 0 18px rgba(64, 198, 141, 0.04);
   }
 
   .landing-consent input {
@@ -741,7 +853,12 @@
   }
 
   .landing-feature-item {
-    @apply rounded-[1rem] border border-white/10 bg-slate-950/35 px-4 py-4;
+    @apply rounded-[1rem] border px-4 py-4;
+    border-color: rgba(112, 255, 167, 0.16);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(95, 255, 164, 0.07), transparent 54%),
+      linear-gradient(180deg, rgba(15, 16, 25, 0.52), rgba(10, 12, 20, 0.48));
+    box-shadow: 0 0 18px rgba(64, 198, 141, 0.04);
   }
 
   .landing-feature-item strong {
@@ -798,10 +915,12 @@
   }
 
   .landing-board-note {
-    @apply rounded-[1.5rem] border border-white/10 px-6 py-5;
+    @apply rounded-[1.5rem] border px-6 py-5;
+    border-color: rgba(112, 255, 167, 0.18);
     background:
-      radial-gradient(circle at top right, rgba(64, 198, 141, 0.1), transparent 26%),
+      radial-gradient(circle at top right, rgba(96, 255, 164, 0.1), transparent 26%),
       linear-gradient(180deg, rgba(26, 24, 31, 0.98), rgba(18, 16, 24, 0.98));
+    box-shadow: 0 0 22px rgba(64, 198, 141, 0.07);
   }
 
   .landing-board-note p {
@@ -841,6 +960,80 @@
     .landing-board-note {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .app-main {
+      @apply px-3 py-6;
+    }
+
+    .landing-shell {
+      @apply gap-5;
+    }
+
+    .landing-hero,
+    .landing-card-grid,
+    .landing-hero-column,
+    .landing-hero-rail {
+      @apply gap-4;
+    }
+
+    .app-panel,
+    .panel,
+    .hero-panel,
+    .landing-showcase-card,
+    .landing-about-card,
+    .landing-promo-card,
+    .landing-offering-card,
+    .landing-board-note {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .landing-hero-panel,
+    .landing-showcase-card,
+    .landing-about-card,
+    .landing-promo-card,
+    .landing-offering-card,
+    .landing-board-note,
+    .app-panel {
+      @apply rounded-[1.5rem] p-5;
+    }
+
+    .landing-hero-panel {
+      min-height: auto;
+    }
+
+    .landing-hero-copy,
+    .landing-section-heading {
+      max-width: none;
+    }
+
+    .landing-hero-panel h1 {
+      font-size: clamp(2.6rem, 15vw, 3.5rem);
+      line-height: 0.9;
+    }
+
+    .landing-promo-card h2,
+    .landing-showcase-card h2,
+    .landing-section-heading h2 {
+      font-size: clamp(2rem, 10vw, 2.7rem);
+      line-height: 0.98;
+    }
+
+    .hero-actions,
+    .button-row,
+    .card-actions {
+      @apply gap-3;
+    }
+
+    .hero-actions > *,
+    .button-row > *,
+    .card-actions > * {
+      flex: 1 1 100%;
+      width: 100%;
     }
   }
 }

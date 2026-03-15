@@ -13,6 +13,7 @@ describe("landing SEO assets", () => {
     expect(html).toContain('<link rel="canonical" href="https://boardenthusiasts.com/" />');
     expect(html).toContain('property="og:title" content="Board Enthusiasts | Community Hub for Board Players and Builders"');
     expect(html).toContain('name="twitter:card" content="summary"');
+    expect(html).toContain('rel="manifest" href="/site.webmanifest"');
     expect(html).toContain('"@type": "Organization"');
     expect(html).toContain('"@type": "WebSite"');
   });
@@ -30,5 +31,13 @@ describe("landing SEO assets", () => {
 
     expect(sitemap).toContain("<loc>https://boardenthusiasts.com/</loc>");
     expect(sitemap).toContain("<loc>https://boardenthusiasts.com/privacy</loc>");
+  });
+
+  it("publishes a web manifest for installable browser metadata", () => {
+    const manifest = readFileSync(path.join(frontendRoot, "public", "site.webmanifest"), "utf8");
+
+    expect(manifest).toContain('"name": "Board Enthusiasts"');
+    expect(manifest).toContain('"short_name": "BE"');
+    expect(manifest).toContain('"theme_color": "#060811"');
   });
 });

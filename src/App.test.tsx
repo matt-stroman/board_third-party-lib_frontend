@@ -528,7 +528,7 @@ describe("App", () => {
 
     renderApp("/");
 
-    expect(await screen.findByRole("heading", { name: "The community hub for Board players and builders." })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "The unofficial community hub for Board players and builders." })).toBeVisible();
     expect(screen.getAllByRole("link", { name: "Get Board" }).some((link) => link.getAttribute("href") === "https://board.fun/")).toBe(true);
     expect(screen.getAllByRole("link", { name: "Get Updates" }).every((link) => link.getAttribute("href") === "#signup")).toBe(true);
     expect(screen.getByRole("heading", { name: "BE App Launcher" })).toBeVisible();
